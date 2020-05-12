@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>155824231614-fahr05kirglid6bs3a4vcoufce48hlvp.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.155824231614-fahr05kirglid6bs3a4vcoufce48hlvp</string>
+	<key>API_KEY</key>
+	<string>AIzaSyAJSrA5s_A7oH-m5XcLPN6cgevvvQymx8s</string>
+	<key>GCM_SENDER_ID</key>
+	<string>155824231614</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.cferguson.AMDriver</string>
+	<key>PROJECT_ID</key>
+	<string>around-midd</string>
+	<key>STORAGE_BUCKET</key>
+	<string>around-midd.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:155824231614:ios:fe8628f7e79c5d84</string>
+	<key>DATABASE_URL</key>
+	<string>https://around-midd.firebaseio.com</string>
+</dict>
+</plist>

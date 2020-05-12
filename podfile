@@ -1,0 +1,28 @@
+# Uncomment the next line to define a global platform for your project
+# platform :ios, '9.0'
+
+target 'AMDriver' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  use_frameworks!
+
+  # Pods for AMDrivere
+pod 'Firebase/Core'
+pod 'Firebase/Auth'
+pod 'Firebase/RemoteConfig'
+pod 'FirebaseUI/Auth'
+pod 'FirebaseUI/Google'
+pod 'Firebase/Database'
+pod 'Firebase/Firestore'
+pod 'TinyConstraints'
+pod 'Stripe'
+pod 'Alamofire'
+pod 'SwiftyJSON'
+
+
+  target 'AMDriverTests' do
+    inherit! :search_paths
+    # Pods for testing
+  end
+
+end
+

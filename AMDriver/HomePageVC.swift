@@ -1,0 +1,635 @@
+//
+//  HomePageVC.swift
+//  AMDriver
+//
+//  Created by Charlie Ferguson on 8/27/19.
+//  Copyright © 2019 cferguson. All rights reserved.
+//
+
+import Foundation
+import Firebase
+import FirebaseFirestore
+import FirebaseUI
+
+class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
+    
+    
+    var CUid: String!
+    var rideList: [Ride] = [Ride]()
+    var rideListEmpty = true
+    let screenSize: CGRect = UIScreen.main.bounds
+    var user: User?
+    var rideId: String?
+    var rideFstId: String?
+    
+    var visableRides = 4
+    
+    //spacing values
+    var driverSwitchSpacingY = 200 as CGFloat
+    var driverSwitchSpacingX = 25 as CGFloat
+    
+    var ScreenTitleY = 95 as CGFloat
+    
+    var logoutButtonX = 8 as CGFloat
+    var logoutButtonY = 40 as CGFloat
+
+    
+    
+    
+    var isDriving = true
+    var onRide = false
+    var passPickup = "No Ride"
+    var passDropoff = "No Ride"
+    var passName = "no name - HPVC"
+    var passTime: NSDate?
+    var passRideValue = 000
+    var passRideID = ""
+    var passStp_id = ""
+    
+    var numRiders = "1"
+    var listener: ListenerRegistration!
+    
+    let customPink : UIColor = UIColor(red: 220/255.0, green: 191/255.0, blue: 255/255.0, alpha: 1)
+    let customIndigo: UIColor = UIColor(red: 38/255.0, green: 61/255.0, blue: 66/255.0, alpha: 1)
+
+    
+    // *** tableView declarataion:
+    let tableview: UITableView = {
+        let tv = UITableView()
+        tv.backgroundColor = UIColor.white
+        tv.translatesAutoresizingMaskIntoConstraints = false
+        tv.separatorColor = UIColor.white
+        return tv
+    }()
+    
+    /*
+     driveing switch
+     */
+    lazy var driveSwitch: UISwitch = {
+        let driveSwitch = UISwitch()
+        driveSwitch.translatesAutoresizingMaskIntoConstraints = false
+        driveSwitch.addTarget(self, action: #selector(didChangeRideSwitch), for: .valueChanged)
+        driveSwitch.setOn(true, animated: true)
+        return driveSwitch
+    }()
+    
+    /*
+     driving switch label
+     */
+    lazy var driveSwitchLabel: UILabel = {
+        let label = UILabel(frame: CGRect(x: self.screenSize.width - 170, y: self.driverSwitchSpacingY + 8, width: 120, height: 100))
+        
+        driveSwitch.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Driving"
+        label.font = UIFont(name: "Copperplate", size: 24)
+        label.textColor = UIColor(displayP3Red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        return label
+    }()
+    
+    /*
+     button for logging out
+     */
+    lazy var logoutButton: UIButton = {
+        let logoutBtn = UIButton(frame: CGRect(x: self.logoutButtonX, y: self.logoutButtonY, width: 100, height: 40))
+        logoutBtn.setTitle( "Logout", for: .normal)
+        logoutBtn.setTitleColor( self.customPink, for: .normal)
+        logoutBtn.titleLabel!.font = UIFont(name: "Copperplate", size: 24)
+        logoutBtn.layer.cornerRadius = 5.0
+        
+        logoutBtn.layer.masksToBounds = true
+        logoutBtn.layer.borderColor = customPink.cgColor
+        logoutBtn.layer.borderWidth = 1.0
+
+        logoutBtn.addTarget(self, action: #selector(didLogout), for: .touchUpInside)
+        return logoutBtn
+    }()
+    
+    /*
+     screen label
+     */
+    lazy var ScreenTitle: UILabel = {
+        let screenTitle = UILabel(frame: CGRect(x: 0, y: self.ScreenTitleY, width: self.screenSize.width, height: 100))
+        screenTitle.text = "Select a Ride to Pick Up"
+        screenTitle.font = UIFont(name: "Copperplate", size: 38)
+        screenTitle.textAlignment = .center
+        screenTitle.textColor = UIColor(displayP3Red: 0, green: 0, blue: 0, alpha: 1)
+        screenTitle.numberOfLines = 2
+        return screenTitle
+    }()
+    
+    /*
+     amount earned by driver.. needs to be created on the backend
+     */
+    lazy var AmountEarned: UILabel = {
+        let label = UILabel(frame: CGRect(x: self.logoutButtonX, y: self.driverSwitchSpacingX + 5, width: 50, height: 50))
+        
+        return label
+    }()
+
+    /* END OF VIEW INITS */
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupTableView()
+        //add Driving switch
+        view.addSubview(driveSwitch)
+        view.addSubview(driveSwitchLabel)
+        view.addSubview(ScreenTitle)
+        view.addSubview(logoutButton)
+       
+        driveSwitch.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: CGFloat(driverSwitchSpacingY)).isActive = true
+        driveSwitch.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor, constant: CGFloat(-driverSwitchSpacingX)).isActive = true
+        
+        //establishing current user
+        user = Auth.auth().currentUser
+        CUid = user?.uid
+        //Set up firestore reference
+        fstore = Firestore.firestore()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        //attatch listener for labels
+        listener = labelListener()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        //detatch listener for labels
+        listener.remove()
+    }
+    
+    
+    /*
+     TableView Code:
+     */
+    func setupTableView() {
+        tableview.delegate = self
+        tableview.dataSource = self
+        
+        tableview.separatorStyle = .none
+        tableview.backgroundColor = customIndigo
+        tableview.register(RideCell.self, forCellReuseIdentifier: "cellId")
+        view.addSubview(tableview)
+        
+        NSLayoutConstraint.activate([
+            tableview.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 300),
+            tableview.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -30),
+            tableview.rightAnchor.constraint(equalTo: self.view.rightAnchor),
+            tableview.leftAnchor.constraint(equalTo: self.view.leftAnchor)
+        ])
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return visableRides
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        print(indexPath.row)
+        
+        let cell = tableview.dequeueReusableCell(withIdentifier: "cellId", for: indexPath) as! RideCell
+        cell.backgroundColor = UIColor.white
+        cell.rideLabel.text = "Ride \(indexPath.row+1)"
+        //if index is higher than number of rides
+        if(indexPath.row >= rideList.count){
+            //set values to null
+            cell.numRidersLabel.text = "Waiting for ride requests"
+            cell.fromLabel.text = ""
+            cell.toLabel.text = ""
+            cell.rideValueLabel.text = ""
+        }
+        else{
+            if(Int(rideList[indexPath.row].riders) ?? 1 > 1){
+                cell.numRidersLabel.text = String(rideList[indexPath.row].riders) + " Riders"
+            }
+            else {
+                cell.numRidersLabel.text = String(rideList[indexPath.row].riders) + " Rider"
+            }
+            cell.fromLabel.text = "From: " + String(rideList[indexPath.row].pickUpLoc)
+            cell.toLabel.text = "To: " + String(rideList[indexPath.row].dropOffLoc)
+            cell.rideValueLabel.text = "$10"
+            //cell.rideValueLabel = "$" + String(rideList[indexPath.row].rideValue)
+
+        }
+        //let tap = UITapGestureRecognizer(target: self, action: #selector(self.tableDidTap(sender:)))
+        
+        cell.textLabel?.isUserInteractionEnabled = true
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(self.tableDidSwipeLeft(sender:)))
+        cell.textLabel?.addGestureRecognizer(swipeLeft)
+        return cell
+    }
+    
+    /*
+        size of table view -
+     */
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 130
+    }
+    
+    /*
+     swiping on table ~ not currently working
+     */
+    @objc func tableDidSwipeLeft(sender: UITapGestureRecognizer) {
+        print("swipe right")
+    }
+    
+    /*
+     ride selection/assignment note:
+        there should potentially be different queues for the various pickup locations
+        - if a driver is dropping off at a certain location then they should be able to pick up in locations near by if there are available rides
+        - ** this is a next step for optimization.. but should only be added once things are up
+            and running.
+     */
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print(indexPath)
+        if(rideList.count > indexPath.row)
+        {
+            if(isDriving) {
+                //should also check to see if the driver is already driving
+                didPickupRide(row: indexPath.row) //updates database
+                
+                passPickup = rideList[indexPath.row].pickUpLoc
+                passDropoff = rideList[indexPath.row].dropOffLoc
+                numRiders = rideList[indexPath.row].riders
+                passName = rideList[indexPath.row].name
+                passTime = rideList[indexPath.row].time
+                passRideID = rideList[indexPath.row].rideID
+                passStp_id = rideList[indexPath.row].stp_id
+                rideFstId = rideList[indexPath.row].UId
+                
+                
+                performSegue(withIdentifier: "PickedUp", sender: self)
+            }
+            else {
+                presentWarning(title: "Warning", message: "You are not currently in driving mode. Please switch on driving to select a ride")
+            }
+        }
+        else {
+            presentWarning(title: "Warning", message: "Please select a ride that has valid information. If there are no valid rides, check back later")
+        }
+    }
+    
+    
+    /*
+        updates firestore database to be concurrent with the state of things
+            - moves doc to driverEnRoute
+     */
+    func didPickupRide(row: Int) {
+        moveRideToEnroute(ride: rideList[row])
+        deleteDocFromRideList(row: row)
+        setInDrive(inDrive: true)
+    }
+    
+    
+    /*
+     
+     */
+    func moveRideToEnroute(ride: Ride) {
+        print("MOVERIDEDOCTOWAITING - RIDELIST: ", self.rideList)
+
+        let pickupLoc = ride.pickUpLoc
+        let dropoffLoc = ride.dropOffLoc
+        let CUid = ride.UId
+        let time: NSDate = ride.time ?? getTime()
+        let riders = ride.riders
+        let rideID = ride.rideID
+        let name = ride.name
+        let stp_id = ride.stp_id
+        
+        fstore.collection("WaitingForDriver").document(rideID).setData([
+            "PickupLoc": pickupLoc ,
+            "DropoffLoc": dropoffLoc,
+            "currentUid": CUid,
+            "Time": time,
+            "Riders": riders,
+            "rideID": rideID,
+            "Name": name,
+            "stp_id": stp_id
+            ])
+    }
+    
+    func presentWarning(title: String, message: String) {
+        let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let alertAction = UIAlertAction(title: "OK", style: .default)
+        alertController.addAction(alertAction)
+        present(alertController, animated: true)
+    }
+    /*
+     responds to changes of the ride switch
+     */
+    @objc func didChangeRideSwitch() {
+        if isDriving == false { isDriving = true }
+        else { isDriving = false }
+        print("isDriving val: ", isDriving)
+        /*
+         potentially add a color setting where the table cells would turn gray
+         */
+    }
+    
+    func labelListener() -> ListenerRegistration {
+        let listener = fstore.collection("Ride List").addSnapshotListener { querySnapshot, error in
+            guard let snapshot = querySnapshot else {
+                print("Error fetching document: \(error!)")
+                return
+            }
+            snapshot.documentChanges.forEach { diff in
+                if (diff.type == .added) {
+                    print("************ADDING************")
+                    print(" New ride: \(diff.document.data())")
+                    if diff.document.data()["rideID"] != nil {
+                        let rideIDData = diff.document.data()["rideID"] as! String
+                        if rideIDData != "" {
+                            self.rideFromData(data: diff.document.data())
+                            print("RIDE LIST (listner):", self.rideList)
+                            self.updateTableFromListner()
+                        }
+                    }
+                }
+                
+                if (diff.type == .modified) {
+                    print("************MOD************")
+                    print(" Modified ride: \(diff.document.data())")
+                    self.rideFromData(data: diff.document.data())
+                    print("RIDE LIST (listner):", self.rideList)
+                    self.updateTableFromListner()
+                }
+                
+                if (diff.type == .removed) {
+                    print("************REMOVING************")
+                    print(" Removed ride: \(diff.document.data())")
+                    if(diff.document.data()["rideID"] as? String != nil)
+                    {
+                        let RID = diff.document.data()["rideID"] as! String
+                        self.removeSpecificRide(rideID: RID)
+                        print("RIDELIST in remove: ", self.rideList)
+                        self.updateTableFromListner()
+                    }
+                    else {
+                        print("Ride not on database")
+                    }
+                }
+            }
+        }
+        return listener
+    }
+    
+    func updateTableFromListner() {
+        tableview.reloadData()
+    }
+    
+    func removeSpecificRide(rideID: String) {
+        print("RIDELIST IN REMOVE SPECIFIC RIDE (START):", rideList)
+
+        let ride = rideList.first(where: { $0.rideID == rideID})! 
+        let index = rideList.firstIndex(of: ride) ?? 0
+        rideList.remove(at: index)
+        print("RIDELIST IN REMOVE SPECIFIC RIDE (END):", rideList)
+        setRideListEmptyBool()
+    }
+    
+    /*
+     create a ride from the database
+     */
+    func rideFromData(data: [String : Any])  {
+        let pickup = data["PickupLoc"] as! String
+        let drop = data["DropoffLoc"] as! String
+        let id = data["currentUid"] as! String
+        let riders = data["Riders"]as! String
+        let rideID = data["rideID"] as! String
+        let name = data["Name"] as! String
+        let stp_id = data["stp_id"] ?? "this is an old ride"
+
+        let ride = Ride(pickUpLoc: pickup, dropOffLoc: drop, UId: id, riders: riders, rideID: rideID, name: name, stp_id: stp_id as! String)
+        self.rideList.append(ride)
+    }
+    
+    /*
+     set the boolean value for the ride
+     */
+    func setInDrive(inDrive: Bool) {
+        var ref: DocumentReference? = nil
+        ref = fstore.collection("DriverAccounts").document(CUid)
+        ref?.updateData([
+            "InRide" : inDrive
+        ]){ err in
+            if let err = err {
+                print("Error updating document: \(err)")
+            } else {
+                print("Document successfully updated -- set in drive")
+            }
+        }
+    }
+
+    
+    func updateRideTable(){
+        setRideListEmptyBool()
+        
+        if rideListEmpty {
+            print("NOTE: Ride list empty")
+        }
+        else{
+            print("RIDE TO DISPLAY: ", self.rideList[rideList.count - 1])
+
+        }
+    }
+
+    
+    func setRideListEmptyBool() {
+        if rideList.count > 0 {
+            rideListEmpty = false
+        }
+        else {
+            rideListEmpty = true
+        }
+    }
+    
+
+    
+    func setRiderWaiting() {
+        var ref: DocumentReference? = nil
+        ref = fstore.collection("RiderAccounts").document(CUid)
+        ref?.updateData([
+            "HasRideReq" : false,
+            "WaitingForDriver" : true
+        ]){ err in
+            if let err = err {
+                print("Error updating document: \(err)")
+            } else {
+                print("Document successfully updated")
+            }
+        }
+    }
+    
+    func deleteDocFromRideList(row: Int) {
+        let ride = rideList[row]
+        let riderideID = ride.rideID
+        
+        print("RIDE DOC ID - DELETEDOCFROMRIDELIST:", riderideID)
+        fstore.collection("Ride List").document(riderideID).delete() { err in
+            if let err = err {
+                print("Error removing document: \(err)")
+            } else {
+                print("DELETEDOCFROMRIDELIST: Document successfully removed!")
+                print("DOC ID: ", riderideID)
+            }
+        }
+    }
+    
+    
+    func getTime() -> NSDate {
+        let timestamp = NSDate().timeIntervalSince1970
+        let myTimeInterval = TimeInterval(timestamp)
+        let time = NSDate(timeIntervalSince1970: TimeInterval(myTimeInterval))
+        return time
+    }
+    
+    
+    @objc func didLogout() {
+        if Auth.auth().currentUser != nil {
+            do {
+                try Auth.auth().signOut() // logs out the user or prints the errors
+                performSegue(withIdentifier: "LogoutFromHome", sender: self)
+                print("LOGGED OUT")
+            } catch { print(error) } //in a real version this should be better accounted for
+        }
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let vc = segue.destination as? ExecuteRideVC {
+            vc.pickupLoc = passPickup
+            vc.dropoffLoc = passDropoff
+            vc.CUid = rideFstId ?? "no ride FstID"
+            vc.stp_id = passStp_id
+            vc.time = passTime
+            vc.numRiders = numRiders
+            vc.name = passName
+            vc.rideID = passRideID
+            vc.rideValue = passRideValue
+            vc.user = self.user
+            vc.fireStore = fstore
+        }
+    }
+}
+
+
+
+class RideCell: UITableViewCell{
+
+    //basic cell setup
+    let cellView: UIView = {
+        let view = UIView()
+        let customPink : UIColor = UIColor(red: 220/255.0, green: 191/255.0, blue: 255/255.0, alpha: 1)
+        view.backgroundColor = customPink
+        view.layer.cornerRadius = 5
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
+    
+    //cell details
+    let rideLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Ride 1"
+        label.textColor = UIColor.black
+        label.font = UIFont(name: "Copperplate", size: 30)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .center
+        return label
+    }()
+    
+    let numRidersLabel: UILabel = {
+        let label = UILabel()
+        label.text = "00 riders"
+        label.textColor = UIColor.white
+        label.font = UIFont(name: "Copperplate", size: 26)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    let rideValueLabel: UILabel = {
+        let label = UILabel()
+        label.text = "$000"
+        label.textColor = UIColor.white
+        label.font = UIFont(name: "Copperplate", size: 30)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    let fromLabel: UILabel = {
+        let label = UILabel()
+        label.text = "From: "
+        label.textColor = UIColor.white
+        label.adjustsFontSizeToFitWidth = true
+        label.font = UIFont(name: "Copperplate", size: 30)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    let toLabel: UILabel = {
+        let label = UILabel()
+        label.text = "To: "
+        label.textColor = UIColor.white
+        label.adjustsFontSizeToFitWidth = true
+        label.font = UIFont(name: "Copperplate", size: 30)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
+        super.init(style: style, reuseIdentifier: reuseIdentifier)
+        
+        setUpView()
+    }
+    
+    func setUpView() {
+        
+        let toFromX = CGFloat(130) //x value of left bound for to and from labels
+        let toFromWidth = UIScreen.main.bounds.width - toFromX - 24
+
+        addSubview(cellView)
+        cellView.addSubview(rideLabel)
+        cellView.addSubview(numRidersLabel)
+        cellView.addSubview(rideValueLabel)
+        cellView.addSubview(toLabel)
+        cellView.addSubview(fromLabel)
+
+        self.selectionStyle = .blue
+        
+        NSLayoutConstraint.activate([
+            cellView.topAnchor.constraint(equalTo: self.topAnchor, constant: 4),
+            cellView.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -8),
+            cellView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 8),
+            cellView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -4)
+        ])
+        
+        rideLabel.heightAnchor.constraint(equalToConstant: 140).isActive = true
+        rideLabel.widthAnchor.constraint(equalToConstant: 140).isActive = true
+        rideLabel.centerYAnchor.constraint(equalTo: cellView.topAnchor, constant: 15).isActive = true
+        rideLabel.leftAnchor.constraint(equalTo: cellView.leftAnchor, constant: 15).isActive = true
+        
+        numRidersLabel.heightAnchor.constraint(equalToConstant: 140).isActive = true
+        numRidersLabel.widthAnchor.constraint(equalToConstant: 400).isActive = true
+        numRidersLabel.centerYAnchor.constraint(equalTo: cellView.topAnchor, constant: 40).isActive = true
+        numRidersLabel.leftAnchor.constraint(equalTo: cellView.leftAnchor, constant: 10).isActive = true
+    
+        rideValueLabel.heightAnchor.constraint(equalToConstant: 140).isActive = true
+        rideValueLabel.widthAnchor.constraint(equalToConstant: 135).isActive = true
+        rideValueLabel.centerYAnchor.constraint(equalTo: cellView.topAnchor, constant: 80).isActive = true
+        rideValueLabel.leftAnchor.constraint(equalTo: cellView.leftAnchor, constant: 10).isActive = true
+          
+        fromLabel.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        fromLabel.widthAnchor.constraint(equalToConstant: toFromWidth).isActive = true
+        fromLabel.centerYAnchor.constraint(equalTo: cellView.topAnchor, constant: 80).isActive = true
+        fromLabel.leftAnchor.constraint(equalTo: cellView.leftAnchor, constant: toFromX).isActive = true
+        
+        toLabel.heightAnchor.constraint(equalToConstant: 140).isActive = true
+        toLabel.widthAnchor.constraint(equalToConstant: toFromWidth).isActive = true
+        toLabel.centerYAnchor.constraint(equalTo: cellView.topAnchor, constant: 40).isActive = true
+        toLabel.leftAnchor.constraint(equalTo: cellView.leftAnchor, constant: toFromX).isActive = true
+        
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+}//end of ride cell
+
