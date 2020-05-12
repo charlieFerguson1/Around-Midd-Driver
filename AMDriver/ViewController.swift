@@ -23,6 +23,8 @@ class ViewController: UIViewController, FUIAuthDelegate {
     var newUser = false
     var firstViewDidLoad = true
     
+    let UD = UserDefaults.standard
+    
     
     //Outlets
     @IBOutlet var Login: UIView!
@@ -70,7 +72,8 @@ class ViewController: UIViewController, FUIAuthDelegate {
             print("User signed in - from authUI didSignInWith")
             print("IS THE USER NEW: ", self.newUser)
             if Auth.auth().currentUser != nil {
-                print("NEW USER - IN AUTHUI:", newUser)
+                UD.set(Auth.auth().currentUser?.uid, forKey: "fst_d_id")
+                print("UD fst_d_id set to: ", UD.string(forKey: "fst_d_id") as Any)
                 isUserNew()
             }
             else {
@@ -84,23 +87,22 @@ class ViewController: UIViewController, FUIAuthDelegate {
     
     func createUser() {
         print("CREATING USER DOCUMENT")
-        let Uid: String = Auth.auth().currentUser?.uid ?? "No UID"
         let userName: String = Auth.auth().currentUser?.displayName ?? "No Name"
-        print("Post UID", Uid)
-        let ref = fstore.collection("DriverAccounts").document(Uid)
+        print("Post UID", UD.string(forKey: "fst_d_id") as Any)
+        let ref = fstore.collection("DriverAccounts").document()
         ref.getDocument { (document, error) in
             if let document = document, document.exists {
                 print("User already established")
                self.newUser = false
             } else {
                 let data: [String: Any] = [
-                    "Uid" : Uid,
+                    "Uid" : self.UD.string(forKey: "fst_d_id")!,
                     "name" : userName,
                     "InRide" : false,
                     "NumberOfRides" : 0,
                     "isDriving" : false //this could be a source of error in the fututre... make sure to update this in homepageVC in fstore
                 ]
-                self.fstore.collection("DriverAccounts").document(Uid).setData(data)
+                self.fstore.collection("DriverAccounts").document(self.UD.string(forKey: "fst_d_id")!).setData(data)
                 self.newUser = true
             }
         }

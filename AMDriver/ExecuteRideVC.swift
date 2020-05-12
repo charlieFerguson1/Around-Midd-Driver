@@ -210,8 +210,6 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
                 else { print("Class: ExecuteRideVC;  func: UpdateStatus\n    error: no ride id")}
 
                 
-                addToCollection(ride: ride, collection: "InRide")
-                deleteDocFromWaitingList(ride: ride, collection: "WaitingForDriver")
             }
         }
         else if(self.statusPhase == 2){
@@ -298,22 +296,16 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
      adds ride to specified location in DB
      */
     func addToCollection(ride: Ride, collection: String) {
-        let pickupLoc = ride.pickUpLoc
-        let dropoffLoc = ride.dropOffLoc
-        let CUid = ride.UId
         let time: NSDate = ride.time ?? getTime()
-        let riders = ride.riders
-        let rideID = ride.rideID
-        let name = ride.name
-        
-        fireStore.collection(collection).document(rideID).setData([
-            "PickupLoc": pickupLoc ,
-            "DropoffLoc": dropoffLoc,
-            "currentUid": CUid,
+
+        fireStore.collection(collection).document(ride.UId).setData([
+            "PickupLoc": ride.pickUpLoc,
+            "DropoffLoc": ride.dropOffLoc,
+            "currentUid": ride.UId,
             "Time": time,
-            "Riders": riders,
-            "rideID": rideID,
-            "Name": name
+            "Riders": ride.riders,
+            "rideID": ride.rideID,
+            "Name": ride.name
             ])
         
     }

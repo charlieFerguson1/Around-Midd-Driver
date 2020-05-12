@@ -274,36 +274,26 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
             - moves doc to driverEnRoute
      */
     func didPickupRide(row: Int) {
-        moveRideToEnroute(ride: rideList[row])
+        moveRideToClaimed(ride: rideList[row])
         deleteDocFromRideList(row: row)
         setInDrive(inDrive: true)
     }
     
     
     /*
-     
+        can this be moved to an external class?
      */
-    func moveRideToEnroute(ride: Ride) {
-        print("MOVERIDEDOCTOWAITING - RIDELIST: ", self.rideList)
-
-        let pickupLoc = ride.pickUpLoc
-        let dropoffLoc = ride.dropOffLoc
-        let CUid = ride.UId
+    func moveRideToClaimed(ride: Ride) {
         let time: NSDate = ride.time ?? getTime()
-        let riders = ride.riders
-        let rideID = ride.rideID
-        let name = ride.name
-        let stp_id = ride.stp_id
-        
-        fstore.collection("WaitingForDriver").document(rideID).setData([
-            "PickupLoc": pickupLoc ,
-            "DropoffLoc": dropoffLoc,
-            "currentUid": CUid,
+        fstore.collection("ClaimedRides").document(ride.UId).setData([
+            "PickupLoc": ride.pickUpLoc,
+            "DropoffLoc": ride.dropOffLoc,
+            "currentUid": ride.UId,
             "Time": time,
-            "Riders": riders,
-            "rideID": rideID,
-            "Name": name,
-            "stp_id": stp_id
+            "Riders": ride.riders,
+            "rideID": ride.rideID,
+            "Name": ride.name,
+            "stp_id": ride.stp_id
             ])
     }
     
@@ -376,6 +366,9 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         tableview.reloadData()
     }
     
+    /// Removes a ride specified by the ride tag string from the local array.
+    /// this does nothing to the database. Sets the rideListEmpty bool at the end.
+    /// - Parameter rideID: a string describing the ride to be removed
     func removeSpecificRide(rideID: String) {
         print("RIDELIST IN REMOVE SPECIFIC RIDE (START):", rideList)
 
@@ -386,9 +379,9 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         setRideListEmptyBool()
     }
     
-    /*
-     create a ride from the database
-     */
+    /// Creates a ride from the data and adds it to the local array.
+    /// This array is predominantly used to disply rides to the driver
+    /// - Parameter data: data description from a firestore query
     func rideFromData(data: [String : Any])  {
         let pickup = data["PickupLoc"] as! String
         let drop = data["DropoffLoc"] as! String
@@ -403,7 +396,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
     }
     
     /*
-     set the boolean value for the ride
+        can probably move this to an external class
      */
     func setInDrive(inDrive: Bool) {
         var ref: DocumentReference? = nil
@@ -419,7 +412,9 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         }
     }
 
-    
+    /*
+     this may not have any callers... should go if so
+     */
     func updateRideTable(){
         setRideListEmptyBool()
         
@@ -443,7 +438,10 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
     }
     
 
-    
+    /*
+     reason: I dont think this is used anymore and I want to move away
+     from this structuring so it shouldn't be used.
+     
     func setRiderWaiting() {
         var ref: DocumentReference? = nil
         ref = fstore.collection("RiderAccounts").document(CUid)
@@ -458,7 +456,12 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
             }
         }
     }
+    */
     
+    /*
+     can I move this to an external class (firestore queires)?
+        - if I move this, pass a rideId instead of the row
+     */
     func deleteDocFromRideList(row: Int) {
         let ride = rideList[row]
         let riderideID = ride.rideID

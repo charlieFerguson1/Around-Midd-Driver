@@ -30,6 +30,8 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
     var CUid: String!
     var fire: Firestore!
     
+    let UD = UserDefaults.standard
+    
     
     @IBOutlet weak var logoutBtn: UIButton!
     
@@ -56,7 +58,7 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
         let state = LisencePlateStateTF.text ?? "NO STATE"
         let lpNum = LiscencePlateNumberTF.text ?? "NO NUMBER"
         
-        let doc = fire.collection("DriverAccounts").document(CUid)
+        let doc = fire.collection("DriverAccounts").document(self.UD.string(forKey: "fst_d_id")!)
         
         doc.updateData([
             "Car Color" : color,
