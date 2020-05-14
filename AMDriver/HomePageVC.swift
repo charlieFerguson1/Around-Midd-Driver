@@ -256,7 +256,6 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
                 passStp_id = rideList[indexPath.row].stp_id
                 rideFstId = rideList[indexPath.row].UId
                 
-                
                 performSegue(withIdentifier: "PickedUp", sender: self)
             }
             else {
@@ -285,7 +284,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
      */
     func moveRideToClaimed(ride: Ride) {
         let time: NSDate = ride.time ?? getTime()
-        fstore.collection("ClaimedRides").document(ride.UId).setData([
+        fstore.collection("ClaimedRides").document(ride.rideID).setData([
             "PickupLoc": ride.pickUpLoc,
             "DropoffLoc": ride.dropOffLoc,
             "currentUid": ride.UId,

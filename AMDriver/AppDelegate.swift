@@ -24,7 +24,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         
         
         self.window = UIWindow(frame: UIScreen.main.bounds)
-        
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
         
         var firstViewName: String!

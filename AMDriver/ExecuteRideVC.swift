@@ -41,8 +41,6 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     let titleY = CGFloat(-250)
     let offBottomBtn: CGFloat = -100
     let btnHeight: CGFloat = 60
-
-
     
     let customIndigo: UIColor = UIColor(red: 38/255.0, green: 61/255.0, blue: 66/255.0, alpha: 1)
     let customPink : UIColor = UIColor(red: 220/255.0, green: 191/255.0, blue: 255/255.0, alpha: 1)
@@ -52,7 +50,6 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     
     var customerContext = STPCustomerContext(keyProvider: MyAPIClient())
     var paymentContext: STPPaymentContext!
-
     
     let clientSecretHandeler: (Bool, ExecuteRideVC) -> Void = {
         print("IM HANDELING IT (_CSH)")
@@ -84,9 +81,9 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     }()
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-              return CGFloat(heightOfCell)
-       }
-       
+        return CGFloat(heightOfCell)
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         rideInfo.append(name)
         rideInfo.append(pickupLoc)
@@ -101,7 +98,6 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         setupTableView()
         super.viewDidLoad()
         view.addSubview(titleStatusLabel)
-       // titleStatusLabel.centerYAnchor = NSLayoutYAxisAnchor(coder: 200)
         view.addSubview(cancelPickupBtn)
         view.addSubview(updateStatusBtn)
         
@@ -109,19 +105,19 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         titleStatusLabel.heightAnchor.constraint(equalToConstant: titleHeight).isActive = true
         titleStatusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         titleStatusLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: titleY).isActive = true
-
-
+        
+        
         /* (DO I NEED THIS) -> all info can be passed in?
-           //establishing current user
-           
-           CUid = user?.uid
-           //Set up firestore reference
-           fstore = Firestore.firestore()
-        */
+         //establishing current user
+         
+         CUid = user?.uid
+         //Set up firestore reference
+         fstore = Firestore.firestore()
+         */
     }
     
     
-
+    
     lazy var titleStatusLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -133,7 +129,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         return label
     }()
     
-   
+    
     
     lazy var cancelPickupBtn: UIButton = {
         let buttonWidth: CGFloat = self.screenSize.width/2 - 30
@@ -160,6 +156,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         ride.time = time
         ride.value = rideValue
         
+        
         //potentially add a warning for when this is the only ride in the list..
         if(inRide) {
             deleteDocFromWaitingList(ride: ride, collection: "WaitingForDriver")
@@ -171,28 +168,28 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         }
         
         //if the driver has a ride -- should always have one
-            //cancel ride, add back to ride list (in the front..)
+        //cancel ride, add back to ride list (in the front..)
         //put driver back to the choose ride screen
     }
     
     lazy var updateStatusBtn: UIButton = {
-         let buttonWidth: CGFloat = self.screenSize.width/2 - 30
+        let buttonWidth: CGFloat = self.screenSize.width/2 - 30
         let button = UIButton(frame: CGRect(x: CGFloat(45 + buttonWidth), y: self.screenSize.height + self.offBottomBtn, width: buttonWidth, height: CGFloat(self.btnHeight)))
-         button.setTitle("I've Arrived", for: .normal)
-         button.setTitleColor(self.customIndigo, for: .normal)
-         button.titleLabel!.font = UIFont(name: "Copperplate", size: 24)
-         button.layer.cornerRadius = 5.0
-         
-         button.layer.masksToBounds = true
-         button.layer.borderColor = customPink.cgColor
-         button.layer.backgroundColor = self.customPink.cgColor
-         button.layer.borderWidth = 1.0
-         button.titleLabel?.adjustsFontSizeToFitWidth = true
-
-         
-         button.addTarget(self, action: #selector(updateStatus), for: .touchUpInside)
-         return button
-     }()
+        button.setTitle("I've Arrived", for: .normal)
+        button.setTitleColor(self.customIndigo, for: .normal)
+        button.titleLabel!.font = UIFont(name: "Copperplate", size: 24)
+        button.layer.cornerRadius = 5.0
+        
+        button.layer.masksToBounds = true
+        button.layer.borderColor = customPink.cgColor
+        button.layer.backgroundColor = self.customPink.cgColor
+        button.layer.borderWidth = 1.0
+        button.titleLabel?.adjustsFontSizeToFitWidth = true
+        
+        
+        button.addTarget(self, action: #selector(updateStatus), for: .touchUpInside)
+        return button
+    }()
     
     @objc func updateStatus() {
         print("update status")
@@ -208,14 +205,15 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
                     MyAPIClient.sharedClient.createPaymentIntent(CUid: CUid, stp_id: stp_id, rideTag: rideID!, vc: self, fStoreClient: fireStore )
                 }
                 else { print("Class: ExecuteRideVC;  func: UpdateStatus\n    error: no ride id")}
-
+                
                 
             }
         }
         else if(self.statusPhase == 2){
             //execute charge on the riders card at the end of the ride - DRIVER IS SOLLY RESPONSIBLE FOR THIS
-                //based on the current structure I need to also create the charge - should happen in the ride object of the DB
+            //based on the current structure I need to also create the charge - should happen in the ride object of the DB
             //should segue to a new page that lists their money earned and what not - offers them to go back to HPVC
+            firestoreQueries().removeRideFromClaimed(rideTag: rideID!, fstore: fireStore)
             performSegue(withIdentifier: "Return Home", sender: self)
         }
         else {
@@ -232,7 +230,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     
     let infoCells = 5 //number of "cells" that will be displayed
     let heightOfCell = 80
-
+    
     func setupTableView() {
         tableview.delegate = self
         tableview.dataSource = self
@@ -252,7 +250,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             tableview.leftAnchor.constraint(equalTo: self.view.leftAnchor)
         ])
     }
-        
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return infoCells
     }
@@ -263,7 +261,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         let cell = tableView.dequeueReusableCell(withIdentifier: "cellId", for: indexPath) as! InfoCell //change this to an info cell.. label and
         cell.backgroundColor = customIndigo
         cell.selectionStyle = .none
-
+        
         if(pickupLoc != nil && dropoffLoc != nil){
             cell.infoLabel.text = String(rideLabels[indexPath.row])
             print(indexPath.row)
@@ -297,7 +295,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
      */
     func addToCollection(ride: Ride, collection: String) {
         let time: NSDate = ride.time ?? getTime()
-
+        
         fireStore.collection(collection).document(ride.UId).setData([
             "PickupLoc": ride.pickUpLoc,
             "DropoffLoc": ride.dropOffLoc,
@@ -306,7 +304,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             "Riders": ride.riders,
             "rideID": ride.rideID,
             "Name": ride.name
-            ])
+        ])
         
     }
     
@@ -327,7 +325,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         return time
     }
     
-
+    
 }
 
 class InfoCell: UITableViewCell {
@@ -335,8 +333,8 @@ class InfoCell: UITableViewCell {
     //class wide details
     let infoLabels = ["Pickup", "@", "DropOff", "Earn"]
     let screenSize: CGRect = UIScreen.main.bounds
-
-        
+    
+    
     //basic cell setup
     let cellView: UIView = {
         let view = UIView()
@@ -346,18 +344,18 @@ class InfoCell: UITableViewCell {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-
+    
     //cell details
     //STAT_LABEL -- header
-       let infoLabel: UILabel = {
-           let label = UILabel()
-           label.text = "Info 1"
-           label.textColor = UIColor.black
-           label.font = UIFont(name: "Copperplate", size: 30)
-           label.translatesAutoresizingMaskIntoConstraints = false
-           label.textAlignment = .center
-           return label
-       }()
+    let infoLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Info 1"
+        label.textColor = UIColor.black
+        label.font = UIFont(name: "Copperplate", size: 30)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .center
+        return label
+    }()
     
     //DYN_LABEL: for ride info -- body
     let rideInfo: UILabel = {
@@ -382,7 +380,7 @@ class InfoCell: UITableViewCell {
         //general text align
         let textHeight = CGFloat(140)
         //let textCenterY = CGFloat(25) —- not used anymore
-
+        
         //label:
         let textWidthLabel = CGFloat(130)
         let textLeftAnchorLabel = CGFloat(15)
@@ -394,11 +392,11 @@ class InfoCell: UITableViewCell {
         let toFromX = CGFloat(130) //x value of left bound for to and from labels
         let toFromWidth = UIScreen.main.bounds.width - toFromX - 24
         
-
+        
         addSubview(cellView)
         cellView.addSubview(infoLabel)
         cellView.addSubview(rideInfo)
-
+        
         self.selectionStyle = .blue
         
         NSLayoutConstraint.activate([
@@ -413,7 +411,7 @@ class InfoCell: UITableViewCell {
         infoLabel.centerYAnchor.constraint(equalTo: cellView.centerYAnchor, constant: 0).isActive = true
         infoLabel.leftAnchor.constraint(equalTo: cellView.leftAnchor, constant: textLeftAnchorLabel).isActive = true
         rideInfo.textAlignment = .center
-
+        
         rideInfo.heightAnchor.constraint(equalToConstant: textHeight ).isActive = true
         rideInfo.widthAnchor.constraint(equalToConstant: textWidthInfo).isActive = true
         rideInfo.centerYAnchor.constraint(equalTo: cellView.centerYAnchor, constant: 0).isActive = true
@@ -421,7 +419,7 @@ class InfoCell: UITableViewCell {
         rideInfo.numberOfLines = 2
         rideInfo.textAlignment = .center
         
-
+        
     }
     
     required init?(coder aDecoder: NSCoder) {

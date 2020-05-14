@@ -29,4 +29,28 @@ class firestoreQueries {
             }
         }
     }
+    
+    func removeRideFromClaimed(rideTag: String, fstore: Firestore){
+        print("givenID  **Delete ride**: ", rideTag)
+        fstore.collection("ClaimedRides").whereField("rideID", isEqualTo: rideTag).getDocuments() {(snapshot, err) in
+            if err != nil {
+                print(err!)
+            }
+            else {
+                print("In delete ride ELSE")
+                for document in (snapshot?.documents)! {
+                    if let rideID = document.data()["rideID"] {
+                        print(rideID)
+                        fstore.collection("Ride List").document(rideID as! String).delete(){ err in
+                            if let err = err {
+                                print("Error removing document: \(err)")
+                            } else {
+                                print("Document successfully removed!")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
