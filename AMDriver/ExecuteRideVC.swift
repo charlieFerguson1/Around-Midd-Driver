@@ -160,7 +160,8 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         //potentially add a warning for when this is the only ride in the list..
         if(inRide) {
             deleteDocFromWaitingList(ride: ride, collection: "WaitingForDriver")
-            addToCollection(ride: ride, collection: "Ride List")
+            let time: NSDate = ride.time ?? getTime()
+            firestoreQueries().addToCollection(ride: ride, collection: "Ride List", time: time, fireStore: self.fireStore)
             performSegue(withIdentifier: "Return Home", sender: self)
         }
         else{
@@ -213,7 +214,12 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             //execute charge on the riders card at the end of the ride - DRIVER IS SOLLY RESPONSIBLE FOR THIS
             //based on the current structure I need to also create the charge - should happen in the ride object of the DB
             //should segue to a new page that lists their money earned and what not - offers them to go back to HPVC
+            
+            let ride = Ride(pickUpLoc: pickupLoc, dropOffLoc: dropoffLoc, UId: CUid, riders: numRiders ?? "1", rideID: rideID ?? "NO RIDE", name: name, stp_id: stp_id )
             firestoreQueries().removeRideFromClaimed(rideTag: rideID!, fstore: fireStore)
+            let time = getTime()
+            firestoreQueries().addToCollection(ride: ride, collection: "CompletedRides", time: time, fireStore: self.fireStore)
+
             performSegue(withIdentifier: "Return Home", sender: self)
         }
         else {
@@ -305,7 +311,19 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             "rideID": ride.rideID,
             "Name": ride.name
         ])
-        
+    }
+    
+    func rideFromData(data: [String : Any]) -> Ride{
+        let pickup = data["PickupLoc"] as! String
+        let drop = data["DropoffLoc"] as! String
+        let id = data["currentUid"] as! String
+        let riders = data["Riders"]as! String
+        let rideID = data["rideID"] as! String
+        let name = data["Name"] as! String
+        let stp_id = data["stp_id"] ?? "this is an old ride"
+
+        let ride = Ride(pickUpLoc: pickup, dropOffLoc: drop, UId: id, riders: riders, rideID: rideID, name: name, stp_id: stp_id as! String)
+        return ride
     }
     
     /* navigation */

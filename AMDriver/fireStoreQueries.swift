@@ -53,4 +53,18 @@ class firestoreQueries {
             }
         }
     }
+    
+    func addToCollection(ride: Ride, collection: String, time: NSDate, fireStore: Firestore) {
+        fireStore.collection(collection).document(ride.UId).setData([
+            "PickupLoc": ride.pickUpLoc,
+            "DropoffLoc": ride.dropOffLoc,
+            "currentUid": ride.UId,
+            "Time": time,
+            "Riders": ride.riders,
+            "rideID": ride.rideID,
+            "Name": ride.name
+        ])
+    }
+    
+    
 }
