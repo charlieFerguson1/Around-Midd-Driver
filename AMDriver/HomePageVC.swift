@@ -267,6 +267,9 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         }
     }
     
+    func addDriverDetailsToRide() {
+        fstore.collection(<#T##collectionPath: String##String#>)
+    }
     
     /*
         updates firestore database to be concurrent with the state of things
@@ -292,7 +295,11 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
             "Riders": ride.riders,
             "rideID": ride.rideID,
             "Name": ride.name,
-            "stp_id": ride.stp_id
+            "stp_id": ride.stp_id,
+            "DriverName": "not set",
+            "Plate" : "not set",
+            "Car" : "not set",
+            "color" : "not set"
             ])
     }
     
@@ -435,27 +442,6 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
             rideListEmpty = true
         }
     }
-    
-
-    /*
-     reason: I dont think this is used anymore and I want to move away
-     from this structuring so it shouldn't be used.
-     
-    func setRiderWaiting() {
-        var ref: DocumentReference? = nil
-        ref = fstore.collection("RiderAccounts").document(CUid)
-        ref?.updateData([
-            "HasRideReq" : false,
-            "WaitingForDriver" : true
-        ]){ err in
-            if let err = err {
-                print("Error updating document: \(err)")
-            } else {
-                print("Document successfully updated")
-            }
-        }
-    }
-    */
     
     /*
      can I move this to an external class (firestore queires)?

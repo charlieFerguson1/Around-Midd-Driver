@@ -42,7 +42,7 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
         //createCarBtn.btnCorner()
         fire = Firestore.firestore()
     }
-
+    
     @IBAction func logoutAction(_ sender: Any) {
         if Auth.auth().currentUser != nil {
             do {
@@ -58,6 +58,11 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
         let state = LisencePlateStateTF.text ?? "NO STATE"
         let lpNum = LiscencePlateNumberTF.text ?? "NO NUMBER"
         
+        UD.set(color, forKey: "color")
+        UD.set(brand, forKey: "brand")
+        UD.set(state, forKey: "state")
+        UD.set(lpNum, forKey: "lpNum")
+        UD.set(<#T##value: Any?##Any?#>, forKey: "name")
         let doc = fire.collection("DriverAccounts").document(self.UD.string(forKey: "fst_d_id")!)
         
         doc.updateData([
@@ -65,7 +70,6 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
             "Car Brand" : brand,
             "Lisence Plate State" : state,
             "Lisence Plate Number" : lpNum
-            
             ])
         { err in
             if let err = err {
