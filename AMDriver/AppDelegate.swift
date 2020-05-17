@@ -35,7 +35,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             firstViewName = "ViewController"
             print("first view set to:", firstViewName)
         }
-        
         let initialViewController = storyboard.instantiateViewController(withIdentifier: firstViewName)
         
         self.window?.rootViewController = initialViewController

@@ -266,11 +266,11 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
             presentWarning(title: "Warning", message: "Please select a ride that has valid information. If there are no valid rides, check back later")
         }
     }
-    
+    /*
     func addDriverDetailsToRide() {
         fstore.collection(<#T##collectionPath: String##String#>)
     }
-    
+    */
     /*
         updates firestore database to be concurrent with the state of things
             - moves doc to driverEnRoute
