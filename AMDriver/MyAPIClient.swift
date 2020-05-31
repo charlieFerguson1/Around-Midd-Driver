@@ -57,8 +57,12 @@ class MyAPIClient: NSObject, STPCustomerEphemeralKeyProvider{
                     
                 }
         }
+    }
+    
+    func calculateArrivalTime(ride: Ride, driverLong: String, driverLat: String, firestore: Firestore) -> String {
+        let arivalTime = "15"
         
-
+        return arivalTime
     }
 
     func setCustomerID(fstId: String, completion: @escaping () -> Void)  {

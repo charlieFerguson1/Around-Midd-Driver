@@ -24,6 +24,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     var name: String = "N/A"
     var fireStore: Firestore!
     var paymentIntentClientSecret: String!
+    var rideCode: String = ""
     
     let statusTitleMessages = [ "Enroute to Rider", "Waiting at Pickup for Rider", "On Trip to Dropoff"]
     let statusButtonMessages = [ "I've Arrived", "Start Trip", "Finish Trip"]
@@ -199,20 +200,16 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             titleStatusLabel.text = statusTitleMessages[statusPhase]
             updateStatusBtn.setTitle(statusButtonMessages[statusPhase], for: .normal)
             if(self.statusPhase == 1){
-                let ride = Ride(pickUpLoc: pickupLoc, dropOffLoc: dropoffLoc, UId: CUid, riders: numRiders ?? "1", rideID: rideID ?? "NO RIDE", name: name, stp_id: stp_id )
-                
                 //create paymentIntent
                 if rideID != nil {
                     MyAPIClient.sharedClient.createPaymentIntent(CUid: CUid, stp_id: stp_id, rideTag: rideID!, vc: self, fStoreClient: fireStore )
                 }
-                else { print("Class: ExecuteRideVC;  func: UpdateStatus\n    error: no ride id")}
-                
-                
+                else {
+                    print("Class: ExecuteRideVC;  func: UpdateStatus\n    error: no ride id")
+                }
             }
         }
         else if(self.statusPhase == 2){
-            //execute charge on the riders card at the end of the ride - DRIVER IS SOLLY RESPONSIBLE FOR THIS
-            //based on the current structure I need to also create the charge - should happen in the ride object of the DB
             //should segue to a new page that lists their money earned and what not - offers them to go back to HPVC
             
             let ride = Ride(pickUpLoc: pickupLoc, dropOffLoc: dropoffLoc, UId: CUid, riders: numRiders ?? "1", rideID: rideID ?? "NO RIDE", name: name, stp_id: stp_id )

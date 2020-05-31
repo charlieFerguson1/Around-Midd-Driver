@@ -10,9 +10,12 @@ import Foundation
 import Firebase
 import FirebaseFirestore
 import FirebaseUI
+import CoreLocation
+import MapKit
 
 class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
-    
+    let codeWords = [ "King", "Queen", "Wolf", "Fish", "Yeti", "Surf", "Wave", "Santa", "Door", "Tiger", "Cat"]
+    let codeNum = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     
     var CUid: String!
     var rideList: [Ride] = [Ride]()
@@ -28,13 +31,17 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
     var driverSwitchSpacingY = 200 as CGFloat
     var driverSwitchSpacingX = 25 as CGFloat
     
-    var ScreenTitleY = 95 as CGFloat
+    var ScreenTitleY = 100 as CGFloat
     
     var logoutButtonX = 8 as CGFloat
     var logoutButtonY = 40 as CGFloat
-
     
+    //location setup
+    let locationManager = CLLocationManager()
+    var driverLocation: CLLocationCoordinate2D?
     
+    //arrival time setup
+    private var currentRoute: MKRoute?
     
     var isDriving = true
     var onRide = false
@@ -45,13 +52,15 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
     var passRideValue = 000
     var passRideID = ""
     var passStp_id = ""
+    var rideCode = ""
     
     var numRiders = "1"
     var listener: ListenerRegistration!
     
     let customPink : UIColor = UIColor(red: 220/255.0, green: 191/255.0, blue: 255/255.0, alpha: 1)
     let customIndigo: UIColor = UIColor(red: 38/255.0, green: 61/255.0, blue: 66/255.0, alpha: 1)
-
+    let customPurple : UIColor = UIColor(red: 166/255.0, green: 217/255.0, blue: 247/255.0, alpha: 1)
+    
     
     // *** tableView declarataion:
     let tableview: UITableView = {
@@ -82,7 +91,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         driveSwitch.translatesAutoresizingMaskIntoConstraints = false
         label.text = "Driving"
         label.font = UIFont(name: "Copperplate", size: 24)
-        label.textColor = UIColor(displayP3Red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0)
+        label.textColor = self.customPurple
         return label
     }()
     
@@ -99,7 +108,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         logoutBtn.layer.masksToBounds = true
         logoutBtn.layer.borderColor = customPink.cgColor
         logoutBtn.layer.borderWidth = 1.0
-
+        
         logoutBtn.addTarget(self, action: #selector(didLogout), for: .touchUpInside)
         return logoutBtn
     }()
@@ -110,9 +119,9 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
     lazy var ScreenTitle: UILabel = {
         let screenTitle = UILabel(frame: CGRect(x: 0, y: self.ScreenTitleY, width: self.screenSize.width, height: 100))
         screenTitle.text = "Select a Ride to Pick Up"
-        screenTitle.font = UIFont(name: "Copperplate", size: 38)
+        screenTitle.font = UIFont(name: "Copperplate-Bold", size: 42)
         screenTitle.textAlignment = .center
-        screenTitle.textColor = UIColor(displayP3Red: 0, green: 0, blue: 0, alpha: 1)
+        screenTitle.textColor = self.customPurple
         screenTitle.numberOfLines = 2
         return screenTitle
     }()
@@ -125,18 +134,18 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         
         return label
     }()
-
+    
     /* END OF VIEW INITS */
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = customIndigo
         setupTableView()
-        //add Driving switch
         view.addSubview(driveSwitch)
         view.addSubview(driveSwitchLabel)
         view.addSubview(ScreenTitle)
         view.addSubview(logoutButton)
-       
+        
         driveSwitch.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: CGFloat(driverSwitchSpacingY)).isActive = true
         driveSwitch.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor, constant: CGFloat(-driverSwitchSpacingX)).isActive = true
         
@@ -145,6 +154,14 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         CUid = user?.uid
         //Set up firestore reference
         fstore = Firestore.firestore()
+        
+        
+        //location setup
+        locationManager.delegate = self
+        locationManager.requestAlwaysAuthorization()
+        locationManager.allowsBackgroundLocationUpdates = true
+        
+        startMySignificantLocationChanges()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -186,7 +203,8 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         print(indexPath.row)
         
         let cell = tableview.dequeueReusableCell(withIdentifier: "cellId", for: indexPath) as! RideCell
-        cell.backgroundColor = UIColor.white
+        cell.backgroundColor = self.customIndigo
+        cell.selectionStyle = .none
         cell.rideLabel.text = "Ride \(indexPath.row+1)"
         //if index is higher than number of rides
         if(indexPath.row >= rideList.count){
@@ -207,7 +225,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
             cell.toLabel.text = "To: " + String(rideList[indexPath.row].dropOffLoc)
             cell.rideValueLabel.text = "$10"
             //cell.rideValueLabel = "$" + String(rideList[indexPath.row].rideValue)
-
+            
         }
         //let tap = UITapGestureRecognizer(target: self, action: #selector(self.tableDidTap(sender:)))
         
@@ -218,7 +236,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
     }
     
     /*
-        size of table view -
+     size of table view -
      */
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 130
@@ -233,10 +251,10 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
     
     /*
      ride selection/assignment note:
-        there should potentially be different queues for the various pickup locations
-        - if a driver is dropping off at a certain location then they should be able to pick up in locations near by if there are available rides
-        - ** this is a next step for optimization.. but should only be added once things are up
-            and running.
+     there should potentially be different queues for the various pickup locations
+     - if a driver is dropping off at a certain location then they should be able to pick up in locations near by if there are available rides
+     - ** this is a next step for optimization.. but should only be added once things are up
+     and running.
      */
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -256,6 +274,10 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
                 passStp_id = rideList[indexPath.row].stp_id
                 rideFstId = rideList[indexPath.row].UId
                 
+                /* update DB to refelct the fact that the ride has been picked up and has a TTPU
+                 - maybe this should be just a passed value that is then sent to the DB n the next VC*/
+                
+                
                 performSegue(withIdentifier: "PickedUp", sender: self)
             }
             else {
@@ -266,14 +288,10 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
             presentWarning(title: "Warning", message: "Please select a ride that has valid information. If there are no valid rides, check back later")
         }
     }
+    
     /*
-    func addDriverDetailsToRide() {
-        fstore.collection(<#T##collectionPath: String##String#>)
-    }
-    */
-    /*
-        updates firestore database to be concurrent with the state of things
-            - moves doc to driverEnRoute
+     updates firestore database to be concurrent with the state of things
+     - moves doc to driverEnRoute
      */
     func didPickupRide(row: Int) {
         moveRideToClaimed(ride: rideList[row])
@@ -282,11 +300,79 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
     }
     
     
+    //MARK: Location related functions
+    
+    /// Adds a listener to the users current location. If the device is able to provide location
+    /// updates, it activates the listener.
+    func startMySignificantLocationChanges() {
+        if !CLLocationManager.significantLocationChangeMonitoringAvailable() {
+            print("The device does not support this kind of monitoring.")
+            return
+        }
+        print("Class: HPVC  location changes activated")
+        locationManager.startMonitoringSignificantLocationChanges()
+    }
+    
+    
+    /// Sets the time till pick up for up to the first 4 rides in the array
+    func setTTPU() {
+        let rideCount = self.rideList.count
+        var loopCount = rideCount - 1
+        if rideCount > 4 {
+            loopCount = 3
+        }
+        print("Class: HPVC      Func: setTTPU\n   >loopCount: ", loopCount)
+        while loopCount >= 0 {
+            let ride = self.rideList[loopCount]
+            if driverLocation != nil {
+                constructRoute(userLocation: driverLocation!, ride: ride)
+            }
+            
+            loopCount = loopCount - 1
+        }
+    }
+    
+    
+    func constructRoute(userLocation: CLLocationCoordinate2D, ride: Ride)  {
+        print("Class: HPVC      Func: ConstructRoute")
+        print(" >ride.pickUpLoc: ", ride.pickUpLoc)
+        let pickupLocation = UD.location(forKey: ride.pickUpLoc) as! CLLocation
+        let pickupCordninates = pickupLocation.coordinate
+        let directionsRequest = MKDirections.Request()
+        directionsRequest.source = MKMapItem(placemark: MKPlacemark(coordinate: userLocation))
+        print("userlocations:\n >", userLocation)
+        directionsRequest.destination = MKMapItem(placemark: MKPlacemark(coordinate: pickupCordninates))
+        print("pickupcordinates:\n >", pickupCordninates)
+        directionsRequest.transportType = .automobile
+        
+        let directions = MKDirections(request: directionsRequest)
+        directions.calculate(completionHandler: {(directionsResponse, error) in
+            if let error = error {
+                print(error.localizedDescription)
+            }
+            else if let response = directionsResponse, response.routes.count > 0 {
+                self.currentRoute = response.routes[0]
+                let travelTime = self.currentRoute?.expectedTravelTime
+                print("Travel Time: ", travelTime?.description ?? "travel Time failed")
+                ride.timeTillPickup = travelTime?.description as! String
+            }
+            else {print("Class: HPVC      Func: ConstructRoute --- in else")}
+        })
+    }
+    
+    
+    func createCode() -> String{
+        let randWord = codeWords[Int.random(in: 0 ... 10)]
+        let randNum = codeNum[Int.random(in: 0 ... 10)]
+        
+        return randWord + randNum
+    }
     /*
-        can this be moved to an external class?
+     can this be moved to an external class?
      */
     func moveRideToClaimed(ride: Ride) {
         let time: NSDate = ride.time ?? getTime()
+        rideCode = createCode()
         fstore.collection("ClaimedRides").document(ride.rideID).setData([
             "PickupLoc": ride.pickUpLoc,
             "DropoffLoc": ride.dropOffLoc,
@@ -296,11 +382,13 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
             "rideID": ride.rideID,
             "Name": ride.name,
             "stp_id": ride.stp_id,
-            "DriverName": "not set",
-            "Plate" : "not set",
-            "Car" : "not set",
-            "color" : "not set"
-            ])
+            "driverName": UD.string(forKey: "name")! ,
+            "carMake" : UD.string(forKey: "car_maker")!,
+            "carModel" : UD.string(forKey: "car_model")!,
+            "color" : UD.string(forKey: "car_color")!,
+            "carSeats" : String(UD.string(forKey: "car_seats")!),
+            "code" : rideCode
+        ])
     }
     
     func presentWarning(title: String, message: String) {
@@ -340,7 +428,6 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
                         }
                     }
                 }
-                
                 if (diff.type == .modified) {
                     print("************MOD************")
                     print(" Modified ride: \(diff.document.data())")
@@ -348,7 +435,6 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
                     print("RIDE LIST (listner):", self.rideList)
                     self.updateTableFromListner()
                 }
-                
                 if (diff.type == .removed) {
                     print("************REMOVING************")
                     print(" Removed ride: \(diff.document.data())")
@@ -377,7 +463,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
     /// - Parameter rideID: a string describing the ride to be removed
     func removeSpecificRide(rideID: String) {
         print("RIDELIST IN REMOVE SPECIFIC RIDE (START):", rideList)
-
+        
         let ride = rideList.first(where: { $0.rideID == rideID})! 
         let index = rideList.firstIndex(of: ride) ?? 0
         rideList.remove(at: index)
@@ -387,6 +473,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
     
     /// Creates a ride from the data and adds it to the local array.
     /// This array is predominantly used to disply rides to the driver
+    /// if the ride is in the first 4 rides in the array it sets the value of TTPU
     /// - Parameter data: data description from a firestore query
     func rideFromData(data: [String : Any])  {
         let pickup = data["PickupLoc"] as! String
@@ -396,13 +483,20 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         let rideID = data["rideID"] as! String
         let name = data["Name"] as! String
         let stp_id = data["stp_id"] ?? "this is an old ride"
-
+        
         let ride = Ride(pickUpLoc: pickup, dropOffLoc: drop, UId: id, riders: riders, rideID: rideID, name: name, stp_id: stp_id as! String)
         self.rideList.append(ride)
+        let rideCount = self.rideList.count
+        if rideCount <= 4 {
+            let ride = rideList[rideCount - 1]
+            if driverLocation != nil {
+                constructRoute(userLocation: driverLocation!, ride: ride)
+            }
+        }
     }
     
     /*
-        can probably move this to an external class
+     can probably move this to an external class
      */
     func setInDrive(inDrive: Bool) {
         var ref: DocumentReference? = nil
@@ -417,22 +511,20 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
             }
         }
     }
-
+    
     /*
      this may not have any callers... should go if so
      */
     func updateRideTable(){
         setRideListEmptyBool()
-        
         if rideListEmpty {
             print("NOTE: Ride list empty")
         }
         else{
             print("RIDE TO DISPLAY: ", self.rideList[rideList.count - 1])
-
         }
     }
-
+    
     
     func setRideListEmptyBool() {
         if rideList.count > 0 {
@@ -445,7 +537,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
     
     /*
      can I move this to an external class (firestore queires)?
-        - if I move this, pass a rideId instead of the row
+     - if I move this, pass a rideId instead of the row
      */
     func deleteDocFromRideList(row: Int) {
         let ride = rideList[row]
@@ -494,6 +586,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
             vc.rideValue = passRideValue
             vc.user = self.user
             vc.fireStore = fstore
+            vc.rideCode = self.rideCode
         }
     }
 }
@@ -501,7 +594,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
 
 
 class RideCell: UITableViewCell{
-
+    
     //basic cell setup
     let cellView: UIView = {
         let view = UIView()
@@ -571,14 +664,14 @@ class RideCell: UITableViewCell{
         
         let toFromX = CGFloat(130) //x value of left bound for to and from labels
         let toFromWidth = UIScreen.main.bounds.width - toFromX - 24
-
+        
         addSubview(cellView)
         cellView.addSubview(rideLabel)
         cellView.addSubview(numRidersLabel)
         cellView.addSubview(rideValueLabel)
         cellView.addSubview(toLabel)
         cellView.addSubview(fromLabel)
-
+        
         self.selectionStyle = .blue
         
         NSLayoutConstraint.activate([
@@ -597,12 +690,12 @@ class RideCell: UITableViewCell{
         numRidersLabel.widthAnchor.constraint(equalToConstant: 400).isActive = true
         numRidersLabel.centerYAnchor.constraint(equalTo: cellView.topAnchor, constant: 40).isActive = true
         numRidersLabel.leftAnchor.constraint(equalTo: cellView.leftAnchor, constant: 10).isActive = true
-    
+        
         rideValueLabel.heightAnchor.constraint(equalToConstant: 140).isActive = true
         rideValueLabel.widthAnchor.constraint(equalToConstant: 135).isActive = true
         rideValueLabel.centerYAnchor.constraint(equalTo: cellView.topAnchor, constant: 80).isActive = true
         rideValueLabel.leftAnchor.constraint(equalTo: cellView.leftAnchor, constant: 10).isActive = true
-          
+        
         fromLabel.heightAnchor.constraint(equalToConstant: 50).isActive = true
         fromLabel.widthAnchor.constraint(equalToConstant: toFromWidth).isActive = true
         fromLabel.centerYAnchor.constraint(equalTo: cellView.topAnchor, constant: 80).isActive = true
@@ -618,6 +711,32 @@ class RideCell: UITableViewCell{
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
 }//end of ride cell
 
+extension HomePageVC: CLLocationManagerDelegate {
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        print("location updated from HPVC!\n    >adding to the UD")
+        /* record the first update to this persons location */
+        if let currentLoc = locations.last {
+            print(" >currentLoc: ", currentLoc)
+            self.driverLocation = currentLoc.coordinate
+            let latitude = currentLoc.coordinate.latitude
+            let longitude = currentLoc.coordinate.longitude
+            UD.set(latitude, forKey: "current_latitude")
+            UD.set(longitude, forKey: "current_longitude")
+            setTTPU()
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Unable to deliver location data")
+        if let error = error as? CLError, error.code == .denied {
+            // Location updates are not authorized.
+            manager.stopMonitoringSignificantLocationChanges()
+            print(error)
+            return
+        }
+    }
+}

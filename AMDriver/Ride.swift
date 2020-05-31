@@ -14,12 +14,15 @@ class Ride: CustomStringConvertible {
     var dropOffLoc: String
     var UId : String
     var stp_id: String
-    var time: NSDate?
-    var timeString: String?
     var riders: String
     var rideID: String
     var name: String
     var value: Int?
+    var time: NSDate?
+    var timeString: String?
+    var longitude: String?
+    var latitude: String?
+    var timeTillPickup: String = "Calculating"
     
     var claimed: Bool
     

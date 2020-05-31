@@ -47,6 +47,7 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
     var maker: String = "Not set"
     var model: String = "Not set"
     var name: String = "Not set"
+    var numberOfSeats = "0"
     
     /* view elements */
     
@@ -106,6 +107,20 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
         return label
     }()
     
+    lazy var numSeatsLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Seats in Car"
+        label.textColor = UIColor.white
+        label.backgroundColor = self.customPurple
+        label.font = UIFont(name: "Copperplate", size: 30)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textAlignment = .center
+        label.layer.cornerRadius = 8
+        label.layer.masksToBounds = true
+        label.adjustsFontSizeToFitWidth = true
+        return label
+    }()
+    
     lazy var nameTF: UITextField = {
         let x = self.screenSize.midX + 20
         let width = self.screenSize.width/2 - 40
@@ -123,7 +138,7 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
     lazy var carTF: UITextField = {
         let x = self.screenSize.midX + 20
         let width = self.screenSize.width/2 - 40
-        let y = self.nameY + self.labelSpacing
+        let y = self.nameY + self.labelSpacing * 3
         let tf = UITextField(frame: CGRect(x: x, y: y, width: width, height: self.labelHeight))
         tf.adjustsFontSizeToFitWidth = true
         tf.attributedPlaceholder = NSAttributedString(string: "Type of Car")
@@ -149,10 +164,23 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
     lazy var carColorTF: UITextField = {
         let x = self.screenSize.midX + 20
         let width = self.screenSize.width/2 - 40
-        let y = self.nameY + self.labelSpacing * 3
+        let y = self.nameY + self.labelSpacing
         let tf = UITextField(frame: CGRect(x: x, y: y, width: width, height: self.labelHeight))
         tf.adjustsFontSizeToFitWidth = true
         tf.attributedPlaceholder = NSAttributedString(string: "Car Color")
+        tf.backgroundColor = .white
+        tf.layer.cornerRadius = 8
+        tf.layer.masksToBounds = true
+        return tf
+    }()
+    
+    lazy var seatTF: UITextField = {
+        let x = self.screenSize.midX + 20
+        let width = self.screenSize.width/2 - 40
+        let y = self.nameY + self.labelSpacing * 4
+        let tf = UITextField(frame: CGRect(x: x, y: y, width: width, height: self.labelHeight))
+        tf.adjustsFontSizeToFitWidth = true
+        tf.keyboardType = .decimalPad
         tf.backgroundColor = .white
         tf.layer.cornerRadius = 8
         tf.layer.masksToBounds = true
@@ -176,7 +204,7 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
     }()
     
     lazy var createCarBtn: UIButton = {
-        let y = self.nameY  + self.labelSpacing * 4
+        let y = self.nameY  + self.labelSpacing * 5
         let width = self.screenSize.width - 40
         let btn = UIButton(frame: CGRect(x: 20, y: y, width: width , height: self.labelHeight * 1.5))
         btn.setTitle("Create Car", for: .normal)
@@ -204,8 +232,8 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
         CUid = user?.uid
         fire = Firestore.firestore()
         
-        let labelArr = [nameLabel, colorLabel, carMakeLabel, carLabel ]
-        let tfArr = [nameTF, carColorTF, carMakeTF, carTF]
+        let labelArr = [nameLabel, colorLabel, carMakeLabel, carLabel, numSeatsLabel]
+        let tfArr = [nameTF, carColorTF, carMakeTF, carTF, seatTF ]
         view.backgroundColor = customIndigo
         var i: CGFloat = 0
         for label in labelArr {
@@ -219,6 +247,7 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
         for tf in tfArr {
             view.addSubview(tf)
         }
+        /* order of tf is defined in the actual uielements */
         view.addSubview(titleLabel)
         view.addSubview(colorTitleBar)
         view.addSubview(createCarBtn)
@@ -258,7 +287,7 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
     
     @objc func createCar(){
         setUDCarValues()
-        if name == "" || model == "" || color == "" || maker == "" {
+        if name == "" || model == "" || color == "" || maker == "" || numberOfSeats == "" {
             presentWarning(title: "Invalid Feild", message: "Please make sure all feilds are filled in.")
         }
         else {
@@ -267,7 +296,8 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
                        "color" : color,
                        "maker" : maker,
                        "model" : model,
-                       "driverName" : name
+                       "driverName" : name,
+                       "carSeats" : numberOfSeats
             ]){ err in
                 if let err = err {
                     print("Error updating document - create car: \(err)")
@@ -286,6 +316,7 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
         model = carTF.text!
         color = carColorTF.text!
         maker = carMakeTF.text!
+        numberOfSeats = seatTF.text!
         
         
         //TODO: I should probably make a car class or struct
@@ -293,7 +324,9 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
         UD.set(model, forKey: "car_model")
         UD.set(maker, forKey: "car_maker")
         UD.set(color, forKey: "car_color")
+        UD.set(Int(numberOfSeats), forKey: "car_seats")
     }
+    
     
     func presentWarning(title: String, message: String) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
@@ -302,4 +335,3 @@ class AccountSetUpVC: UIViewController, FUIAuthDelegate {
         present(alertController, animated: true)
     }
 }
-

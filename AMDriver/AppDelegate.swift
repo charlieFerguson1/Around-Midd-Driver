@@ -15,13 +15,17 @@ import FirebaseUI
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    var fstore : Firestore!
 
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        
         // Use Firebase library to configure APIs
-        FirebaseApp.configure()        // Override point for customization after application launch.
+        FirebaseApp.configure()
+        fstore = Firestore.firestore()
+
         
+        firestoreQueries().getLocationDict(type: "Pickup", firestore: fstore)
+        firestoreQueries().getLocationDict(type: "Drop-off", firestore: fstore)
         
         self.window = UIWindow(frame: UIScreen.main.bounds)
         let storyboard = UIStoryboard(name: "Main", bundle: nil)
@@ -29,11 +33,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         var firstViewName: String!
         if Auth.auth().currentUser != nil {
             firstViewName = "HomePageVC"
-            print("first view set to:", firstViewName)
+            print("first view set to:", firstViewName!)
         }
         else {
             firstViewName = "ViewController"
-            print("first view set to:", firstViewName)
+            print("first view set to:", firstViewName!)
         }
         let initialViewController = storyboard.instantiateViewController(withIdentifier: firstViewName)
         
