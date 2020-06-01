@@ -20,6 +20,8 @@
 		A93D42B423160F0D0073D557 /* HomePageVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93D42B323160F0D0073D557 /* HomePageVC.swift */; };
 		A93D42BE2316160E0073D557 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = A93D42BD2316160E0073D557 /* GoogleService-Info.plist */; };
 		A93FF2C223BD56CF000D5EEA /* StyleClasses.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93FF2C123BD56CF000D5EEA /* StyleClasses.swift */; };
+		A9609FA024856ED50009CAE1 /* UIElementStyles.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9609F9F24856ED50009CAE1 /* UIElementStyles.swift */; };
+		A9609FA4248586F60009CAE1 /* AnimationsUIViewExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9609FA3248586F60009CAE1 /* AnimationsUIViewExtension.swift */; };
 		A9630D3624838B090031BD9C /* locationUDExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9630D3524838B090031BD9C /* locationUDExtension.swift */; };
 		A9868206231738C700FCD534 /* Ride.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9868205231738C700FCD534 /* Ride.swift */; };
 		A9B6384A244FB780006DD7DB /* MyAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9B63849244FB780006DD7DB /* MyAPIClient.swift */; };
@@ -60,6 +62,8 @@
 		A93D42B323160F0D0073D557 /* HomePageVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomePageVC.swift; sourceTree = "<group>"; };
 		A93D42BD2316160E0073D557 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		A93FF2C123BD56CF000D5EEA /* StyleClasses.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyleClasses.swift; sourceTree = "<group>"; };
+		A9609F9F24856ED50009CAE1 /* UIElementStyles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIElementStyles.swift; sourceTree = "<group>"; };
+		A9609FA3248586F60009CAE1 /* AnimationsUIViewExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AnimationsUIViewExtension.swift; path = /Users/charlieferguson/Desktop/AMDriver/AMDriver/AnimationsUIViewExtension.swift; sourceTree = "<absolute>"; };
 		A9630D3524838B090031BD9C /* locationUDExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = locationUDExtension.swift; sourceTree = "<group>"; };
 		A9868205231738C700FCD534 /* Ride.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Ride.swift; sourceTree = "<group>"; };
 		A9B63849244FB780006DD7DB /* MyAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyAPIClient.swift; sourceTree = "<group>"; };
@@ -132,11 +136,13 @@
 				A93D428E2315AD650073D557 /* AppDelegate.swift */,
 				A93D42B323160F0D0073D557 /* HomePageVC.swift */,
 				A9630D3524838B090031BD9C /* locationUDExtension.swift */,
+				A9609FA3248586F60009CAE1 /* AnimationsUIViewExtension.swift */,
 				A93D42902315AD650073D557 /* ViewController.swift */,
 				A93FF2C123BD56CF000D5EEA /* StyleClasses.swift */,
 				A91B3B54231F6C5B002ABC2A /* AccountSetUpVC.swift */,
 				A9B63849244FB780006DD7DB /* MyAPIClient.swift */,
 				A9B6384B24510F45006DD7DB /* fireStoreQueries.swift */,
+				A9609F9F24856ED50009CAE1 /* UIElementStyles.swift */,
 				A93D42922315AD650073D557 /* Main.storyboard */,
 				A93D42982315AD680073D557 /* Assets.xcassets */,
 				A93D429A2315AD680073D557 /* LaunchScreen.storyboard */,
@@ -346,9 +352,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				A9B6384C24510F45006DD7DB /* fireStoreQueries.swift in Sources */,
+				A9609FA4248586F60009CAE1 /* AnimationsUIViewExtension.swift in Sources */,
 				A93D42912315AD650073D557 /* ViewController.swift in Sources */,
 				A91B3B55231F6C5B002ABC2A /* AccountSetUpVC.swift in Sources */,
 				A93D42972315AD650073D557 /* AMDriver.xcdatamodeld in Sources */,
+				A9609FA024856ED50009CAE1 /* UIElementStyles.swift in Sources */,
 				A93D42B423160F0D0073D557 /* HomePageVC.swift in Sources */,
 				A93FF2C223BD56CF000D5EEA /* StyleClasses.swift in Sources */,
 				A9868206231738C700FCD534 /* Ride.swift in Sources */,

@@ -13,7 +13,7 @@ import FirebaseUI
 import CoreLocation
 import MapKit
 
-class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
+class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UIGestureRecognizerDelegate {
     let codeWords = [ "King", "Queen", "Wolf", "Fish", "Yeti", "Surf", "Wave", "Santa", "Door", "Tiger", "Cat"]
     let codeNum = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     
@@ -32,6 +32,10 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
     var driverSwitchSpacingX = 25 as CGFloat
     
     var ScreenTitleY = 100 as CGFloat
+    
+    var tableTop = 300 as CGFloat
+    var sideBuffer = 8 as CGFloat
+    var tableBottom = 20 as CGFloat
     
     var logoutButtonX = 8 as CGFloat
     var logoutButtonY = 40 as CGFloat
@@ -126,6 +130,52 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         return screenTitle
     }()
     
+    lazy var screenMask: UIView = {
+        let screenDM = self.screenSize
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: screenDM.width, height: screenDM.height))
+        view.backgroundColor = self.customPurple.withAlphaComponent(0.5)
+        return view
+    }()
+    
+    lazy var clearScreen: UIView = {
+        let screenDM = self.screenSize
+        let view = UIView(frame: CGRect(x: 0, y: 0, width: screenDM.width, height: screenDM.height))
+        //view.backgroundColor =
+        return view
+    }()
+    
+    lazy var popOutDetailView: UIView = {
+        let view = UIView()
+        let x = self.sideBuffer
+        let y = self.driverSwitchSpacingY
+        let width = self.screenSize.width - 2 * self.sideBuffer
+        let height = self.screenSize.height - self.driverSwitchSpacingY - self.tableBottom * 2
+        
+        view.createViewWithRoundCorners(x: x, y: y, width: width, height: height, backgroundColor: self.customIndigo, borderColor: self.customIndigo, view: self.view)
+        
+        return view
+    }()
+    
+    /*lazy var popOutShadow : UIView = {
+        let view = UIView()
+        let x = self.sideBuffer
+        let y = self.driverSwitchSpacingY
+        let width = self.screenSize.width - 2 * self.sideBuffer
+        let height = self.screenSize.height - self.driverSwitchSpacingY - self.tableBottom * 2
+        view.addShadow(x: x, y: y, width: width, height: height, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, view: self.view)
+        return view
+    }()
+    */
+    
+    lazy var popOutShadow: CALayer = {
+        let view = UIView()
+        let x = self.sideBuffer
+        let y = self.driverSwitchSpacingY
+        let width = self.screenSize.width - 2 * self.sideBuffer
+        let height = self.screenSize.height - self.driverSwitchSpacingY - self.tableBottom * 2
+        return view.addShadow(x: x, y: y, width: width, height: height, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, view: self.view)
+    }()
+    
     /*
      amount earned by driver.. needs to be created on the backend
      */
@@ -145,6 +195,10 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         view.addSubview(driveSwitchLabel)
         view.addSubview(ScreenTitle)
         view.addSubview(logoutButton)
+        
+        let longPressGesture: UILongPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+        longPressGesture.minimumPressDuration = 0.5
+        self.tableview.addGestureRecognizer(longPressGesture)
         
         driveSwitch.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: CGFloat(driverSwitchSpacingY)).isActive = true
         driveSwitch.rightAnchor.constraint(equalTo: view.safeAreaLayoutGuide.rightAnchor, constant: CGFloat(-driverSwitchSpacingX)).isActive = true
@@ -188,10 +242,10 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         view.addSubview(tableview)
         
         NSLayoutConstraint.activate([
-            tableview.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 300),
+            tableview.topAnchor.constraint(equalTo: self.view.topAnchor, constant: tableTop),
             tableview.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -30),
-            tableview.rightAnchor.constraint(equalTo: self.view.rightAnchor),
-            tableview.leftAnchor.constraint(equalTo: self.view.leftAnchor)
+            tableview.rightAnchor.constraint(equalTo: self.view.rightAnchor, constant: -1 * self.sideBuffer),
+            tableview.leftAnchor.constraint(equalTo: self.view.leftAnchor, constant: self.sideBuffer)
         ])
     }
     
@@ -299,6 +353,38 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
         setInDrive(inDrive: true)
     }
     
+    @objc func handleLongPress(longPressGesture: UILongPressGestureRecognizer) {
+        print("LONGPRESS")
+        let point = longPressGesture.location(in: self.tableview)
+        let indexPath = self.tableview.indexPathForRow(at: point)
+        
+        if indexPath == nil {
+            print("Long press not on row")
+        }
+        else if (longPressGesture.state == UIGestureRecognizer.State.began ) {
+            print("Long press on row, at \(indexPath!.row)")
+            /* get the data for the correct ride */
+            /* display view with data */
+            if rideList.count > indexPath!.row {
+                clearScreen.layer.addSublayer(popOutShadow)
+                view.addSubviewWithZoomInAnimation(screenMask, duration: 0.02, options: UIView.AnimationOptions.curveEaseOut)
+                view.addSubviewWithZoomInAnimation(clearScreen, duration: 0.15, options: .curveEaseOut)
+                
+                view.addSubviewWithZoomInAnimation(popOutDetailView, duration: 0.15, options: .curveEaseOut)
+            }
+            else { print("No ride in this row")}
+            
+        }
+        else if(longPressGesture.state == UIGestureRecognizer.State.ended) {
+            print("Long touch ended")
+            screenMask.removeWithZoomOutAnimation(duration: 0.1, options: .curveEaseOut)
+            clearScreen.removeWithZoomOutAnimation(duration: 0.1, options: .curveEaseOut)
+            popOutDetailView.removeWithZoomOutAnimation(duration: 0.1, options: .curveEaseOut)
+            
+        }
+        
+    }
+    
     
     //MARK: Location related functions
     
@@ -382,7 +468,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
             "rideID": ride.rideID,
             "Name": ride.name,
             "stp_id": ride.stp_id,
-            "driverName": UD.string(forKey: "name")! ,
+            "driverName": UD.string(forKey: "name") ?? "Name not set" , //TODO: take care of case where the Driver name is not set
             "carMake" : UD.string(forKey: "car_maker")!,
             "carModel" : UD.string(forKey: "car_model")!,
             "color" : UD.string(forKey: "car_color")!,
@@ -595,6 +681,9 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource {
 
 class RideCell: UITableViewCell{
     
+    let verticleBuffer = CGFloat(4)
+    
+    
     //basic cell setup
     let cellView: UIView = {
         let view = UIView()
@@ -656,7 +745,6 @@ class RideCell: UITableViewCell{
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
         setUpView()
     }
     
@@ -675,10 +763,10 @@ class RideCell: UITableViewCell{
         self.selectionStyle = .blue
         
         NSLayoutConstraint.activate([
-            cellView.topAnchor.constraint(equalTo: self.topAnchor, constant: 4),
-            cellView.rightAnchor.constraint(equalTo: self.rightAnchor, constant: -8),
-            cellView.leftAnchor.constraint(equalTo: self.leftAnchor, constant: 8),
-            cellView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -4)
+            cellView.topAnchor.constraint(equalTo: self.topAnchor, constant: verticleBuffer),
+            cellView.rightAnchor.constraint(equalTo: self.rightAnchor),
+            cellView.leftAnchor.constraint(equalTo: self.leftAnchor),
+            cellView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -1 * verticleBuffer)
         ])
         
         rideLabel.heightAnchor.constraint(equalToConstant: 140).isActive = true

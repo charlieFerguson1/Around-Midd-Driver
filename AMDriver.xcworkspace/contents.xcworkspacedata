@@ -2,6 +2,9 @@
 <Workspace
    version = "1.0">
    <FileRef
+      location = "group:/Users/charlieferguson/Desktop/AMDriver/AMDriver/AnimationsUIViewExtension.swift">
+   </FileRef>
+   <FileRef
       location = "group:../route.gpx">
    </FileRef>
    <FileRef
