@@ -33,6 +33,18 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     
     var ScreenTitleY = 100 as CGFloat
     
+    let podvBuffer: CGFloat = 15
+    let podvLabelHeight: CGFloat = 45
+    let podvLabelSpacing: CGFloat = 15
+    let podvValueWidth: CGFloat = 75
+    let bigPodvValueWidth: CGFloat = 200
+    
+    /* reset in viewdidload */
+    var popOutWidth: CGFloat = 0.0
+    var popOutHeight: CGFloat = 0.0
+    var popOutX: CGFloat = 8
+    var popOutY: CGFloat = 200
+    
     var tableTop = 300 as CGFloat
     var sideBuffer = 8 as CGFloat
     var tableBottom = 20 as CGFloat
@@ -57,6 +69,8 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     var passRideID = ""
     var passStp_id = ""
     var rideCode = ""
+    var timeTillPickup: String = ""
+
     
     var numRiders = "1"
     var listener: ListenerRegistration!
@@ -156,16 +170,176 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         return view
     }()
     
-    /*lazy var popOutShadow : UIView = {
-        let view = UIView()
-        let x = self.sideBuffer
-        let y = self.driverSwitchSpacingY
-        let width = self.screenSize.width - 2 * self.sideBuffer
-        let height = self.screenSize.height - self.driverSwitchSpacingY - self.tableBottom * 2
-        view.addShadow(x: x, y: y, width: width, height: height, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, view: self.view)
-        return view
+    lazy var driveValuePODVTitle: UILabel = {
+        let label = UILabel()
+        let x = CGFloat(podvBuffer)
+        let y = CGFloat(podvBuffer)
+        let width = self.popOutWidth - (self.podvBuffer * 2 + self.podvValueWidth + self.podvLabelSpacing)
+        let height: CGFloat = podvLabelHeight
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: "Ride Value", font: "Copperplate-Bold", fontSize: CGFloat(30) , textColor: self.customIndigo, backgroundColor: self.customPurple, borderColor: self.customPurple, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, hasShadow: true, view: self.popOutDetailView)
+        label.textAlignment = .natural
+        return label
     }()
-    */
+
+    lazy var driveValuePODVValue: UILabel = {
+        let label = UILabel()
+        let x = self.popOutWidth - (self.podvBuffer + self.podvValueWidth)
+        let y = CGFloat(podvBuffer) + (podvLabelHeight + podvLabelSpacing) * 0
+        let width = self.podvValueWidth
+        let height: CGFloat = podvLabelHeight
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: "Waiting...", font: "Copperplate-Bold", fontSize: CGFloat(30) , textColor: self.customIndigo, backgroundColor: self.customPink, borderColor: self.customIndigo, shadowColor: UIColor.black, shadowOpacity: 0.3, shadowOffset: 3, shadowRadius: 5, hasShadow: true, view: self.popOutDetailView)
+        label.textAlignment = .natural
+        return label
+    }()
+    
+    lazy var timeToPickupPODV: UILabel = {
+        let label = UILabel()
+        let x = CGFloat(podvBuffer)
+        let y = CGFloat(podvBuffer) + (podvLabelHeight + podvLabelSpacing) * 1
+        let width = self.popOutWidth - (self.podvBuffer * 2 + self.podvValueWidth + self.podvLabelSpacing)
+        let height: CGFloat = podvLabelHeight
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: "Minutes Away", font: "Copperplate-Bold", fontSize: CGFloat(30) , textColor: self.customIndigo, backgroundColor: self.customPurple, borderColor: self.customPurple, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, hasShadow: true, view: self.popOutDetailView)
+        label.textAlignment = .natural
+
+        return label
+    }()
+
+    lazy var timeToPickUpValuePODV: UILabel = {
+        let label = UILabel()
+        let x = self.popOutWidth - (self.podvBuffer + self.podvValueWidth)
+        let y = CGFloat(podvBuffer) + (podvLabelHeight + podvLabelSpacing) * 1
+        let width = self.podvValueWidth
+        let height: CGFloat = podvLabelHeight
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: "15", font: "Copperplate-Bold", fontSize: CGFloat(40) , textColor: self.customIndigo, backgroundColor: self.customPink, borderColor: self.customIndigo, shadowColor: UIColor.white, shadowOpacity: 0.4, shadowOffset: 3, shadowRadius: 5, hasShadow: false, view: self.popOutDetailView)
+        label.layer.shadowColor = UIColor.black.cgColor
+        
+        label.textAlignment = .center
+        return label
+    }()
+    
+    lazy var numberOfRidersTitle: UILabel = {
+       let label = UILabel()
+        let x = CGFloat(podvBuffer)
+        let y = CGFloat(podvBuffer) + (podvLabelHeight + podvLabelSpacing) * 2
+        let width = self.popOutWidth - (self.podvBuffer * 2 + self.podvValueWidth + self.podvLabelSpacing)
+        let height: CGFloat = podvLabelHeight
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: "Number of Riders", font: "Copperplate-Bold", fontSize: CGFloat(40) , textColor: self.customIndigo, backgroundColor: self.customPurple, borderColor: self.customPurple, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, hasShadow: true, view: self.popOutDetailView)
+        label.textAlignment = .natural
+        return label
+    }()
+    
+    lazy var numRidersValue: UILabel = {
+        let label = UILabel()
+        let x = self.popOutWidth - (self.podvBuffer + self.podvValueWidth)
+        let y = CGFloat(podvBuffer) + (podvLabelHeight + podvLabelSpacing) * 2
+        let width = self.podvValueWidth
+        let height: CGFloat = podvLabelHeight
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: "4", font: "Copperplate-Bold", fontSize: CGFloat(30) , textColor: self.customIndigo, backgroundColor: self.customPink, borderColor: self.customIndigo, shadowColor: UIColor.black, shadowOpacity: 0.4, shadowOffset: 3, shadowRadius: 5, hasShadow: true, view: self.popOutDetailView)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    lazy var riderNameTitle: UILabel = {
+        let label = UILabel()
+        let x = CGFloat(podvBuffer)
+        let y = CGFloat(podvBuffer) + (podvLabelHeight + podvLabelSpacing) * 3
+        let width = self.popOutWidth - (self.podvBuffer * 2 + self.bigPodvValueWidth + self.podvLabelSpacing)
+        let height: CGFloat = podvLabelHeight
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: "Rider", font: "Copperplate-Bold", fontSize: CGFloat(35) , textColor: self.customIndigo, backgroundColor: self.customPurple, borderColor: self.customPurple, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, hasShadow: true, view: self.popOutDetailView)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    lazy var riderNameValue: UILabel = {
+        let label = UILabel()
+        let x = self.popOutWidth - (self.podvBuffer + self.bigPodvValueWidth)
+        let y = CGFloat(podvBuffer) + (podvLabelHeight + podvLabelSpacing) * 3
+        let width = self.bigPodvValueWidth
+        let height: CGFloat = podvLabelHeight
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: "Name", font: "Copperplate-Bold", fontSize: CGFloat(35) , textColor: self.customIndigo, backgroundColor: self.customPink, borderColor: self.customIndigo, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, hasShadow: true, view: self.popOutDetailView)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    lazy var pickup: UILabel = {
+        let label = UILabel()
+        let x = CGFloat(podvBuffer)
+        let y = CGFloat(podvBuffer) + (podvLabelHeight + podvLabelSpacing) * 4
+        let width = self.popOutWidth - (self.podvBuffer * 2 + self.bigPodvValueWidth + self.podvLabelSpacing)
+        let height: CGFloat = podvLabelHeight
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: "Pickup", font: "Copperplate-Bold", fontSize: CGFloat(35) , textColor: self.customIndigo, backgroundColor: self.customPurple, borderColor: self.customPurple, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, hasShadow: true, view: self.popOutDetailView)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    lazy var pickupValue: UILabel = {
+        let label = UILabel()
+        let x = self.popOutWidth - (self.podvBuffer + self.bigPodvValueWidth)
+        let y = CGFloat(podvBuffer) + (podvLabelHeight + podvLabelSpacing) * 4
+        let width = self.bigPodvValueWidth
+        let height: CGFloat = podvLabelHeight
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: "place", font: "Copperplate-Bold", fontSize: CGFloat(35) , textColor: self.customIndigo, backgroundColor: self.customPink, borderColor: self.customIndigo, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, hasShadow: true, view: self.popOutDetailView)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    lazy var dropoff: UILabel = {
+        let label = UILabel()
+        let x = CGFloat(podvBuffer)
+        let y = CGFloat(podvBuffer) + (podvLabelHeight + podvLabelSpacing) * 5
+        let width = self.popOutWidth - (self.podvBuffer * 2 + self.bigPodvValueWidth + self.podvLabelSpacing)
+        let height: CGFloat = podvLabelHeight
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: "Dropoff", font: "Copperplate-Bold", fontSize: CGFloat(35) , textColor: self.customIndigo, backgroundColor: self.customPurple, borderColor: self.customPurple, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, hasShadow: true, view: self.popOutDetailView)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    lazy var dropoffValue: UILabel = {
+        let label = UILabel()
+        let x = self.popOutWidth - (self.podvBuffer + self.bigPodvValueWidth)
+        let y = CGFloat(podvBuffer) + (podvLabelHeight + podvLabelSpacing) * 5
+        let width = self.bigPodvValueWidth
+        let height: CGFloat = podvLabelHeight
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: "place", font: "Copperplate-Bold", fontSize: CGFloat(35) , textColor: self.customIndigo, backgroundColor: self.customPink, borderColor: self.customIndigo, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, hasShadow: true, view: self.popOutDetailView)
+        label.textAlignment = .center
+        return label
+    }()
+   
+    
+    
+    lazy var additionalDetailsLabel: UILabel = {
+        let label = UILabel()
+        var dropoff: String = "dropoff"
+        var pickup: String = "pickup"
+        var riderName: String = "riderName"
+        var tripTime: String = "tripTime"
+        
+        let message: String = "Pickup \(riderName) at \(pickup). Drive \(tripTime) minutes and dropoff \(riderName) at \(dropoff)."
+
+        let x = CGFloat(podvBuffer)
+        let y = CGFloat(podvBuffer) + (podvLabelHeight + podvLabelSpacing) * 3
+        let width = self.popOutWidth - (self.podvBuffer * 2)
+        let height: CGFloat = podvLabelHeight * 4
+        
+        label.createLabelWithShadow(x: x, y: y, width: width, height: height, labelTitle: message, font: "Copperplate-Bold", fontSize: CGFloat(35), textColor: .white, backgroundColor: .clear, borderColor: .clear, shadowColor: .clear, shadowOpacity: 0, shadowOffset: 0, shadowRadius: 0, hasShadow: false, view: self.popOutDetailView)
+        label.numberOfLines = 4
+        label.textAlignment = .left
+        return label
+    }()
+       
+    var podvViews: [UIView] = []
     
     lazy var popOutShadow: CALayer = {
         let view = UIView()
@@ -175,6 +349,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         let height = self.screenSize.height - self.driverSwitchSpacingY - self.tableBottom * 2
         return view.addShadow(x: x, y: y, width: width, height: height, shadowColor: UIColor.black, shadowOpacity: 0.6, shadowOffset: 3, shadowRadius: 5, view: self.view)
     }()
+    
     
     /*
      amount earned by driver.. needs to be created on the backend
@@ -196,8 +371,11 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         view.addSubview(ScreenTitle)
         view.addSubview(logoutButton)
         
+        popOutWidth = self.screenSize.width - 2 * self.sideBuffer
+        popOutHeight = self.screenSize.height - self.driverSwitchSpacingY - self.tableBottom * 2
+        
         let longPressGesture: UILongPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
-        longPressGesture.minimumPressDuration = 0.5
+        longPressGesture.minimumPressDuration = 0.2
         self.tableview.addGestureRecognizer(longPressGesture)
         
         driveSwitch.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: CGFloat(driverSwitchSpacingY)).isActive = true
@@ -281,7 +459,6 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             //cell.rideValueLabel = "$" + String(rideList[indexPath.row].rideValue)
             
         }
-        //let tap = UITapGestureRecognizer(target: self, action: #selector(self.tableDidTap(sender:)))
         
         cell.textLabel?.isUserInteractionEnabled = true
         let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(self.tableDidSwipeLeft(sender:)))
@@ -327,6 +504,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                 passRideID = rideList[indexPath.row].rideID
                 passStp_id = rideList[indexPath.row].stp_id
                 rideFstId = rideList[indexPath.row].UId
+                timeTillPickup = rideList[indexPath.row].timeTillPickup
                 
                 /* update DB to refelct the fact that the ride has been picked up and has a TTPU
                  - maybe this should be just a passed value that is then sent to the DB n the next VC*/
@@ -353,6 +531,43 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         setInDrive(inDrive: true)
     }
     
+    func setUpDetailView(ride: Ride) {
+        driveValuePODVValue.text = "$20"
+        timeToPickUpValuePODV.text = ride.timeTillPickup
+        pickupValue.text = ride.pickUpLoc
+        dropoffValue.text = ride.dropOffLoc
+        
+        
+        self.podvViews.append(driveValuePODVTitle)
+        self.podvViews.append(driveValuePODVValue)
+        self.podvViews.append(timeToPickupPODV)
+        self.podvViews.append(timeToPickUpValuePODV)
+        self.podvViews.append(numberOfRidersTitle)
+        self.podvViews.append(numRidersValue)
+        self.podvViews.append(riderNameTitle)
+        self.podvViews.append(riderNameValue)
+        self.podvViews.append(pickup)
+        self.podvViews.append(pickupValue)
+        self.podvViews.append(dropoff)
+        self.podvViews.append(dropoffValue)
+
+        //self.podvViews.append(additionalDetailsLabel)
+        
+        for view in podvViews {
+            popOutDetailView.addSubview(view)
+        }
+    }
+    
+    func formatMessage(ride: Ride) -> String {
+        let dropoff: String =  ride.dropOffLoc
+        let pickup: String = ride.pickUpLoc
+        let riderName: String = "riderName"
+        let tripTime: String = "calculating"
+        
+        let message: String = "Pickup \(riderName) at \(pickup). Drive \(tripTime) minutes and dropoff \(riderName) at \(dropoff)."
+        return message
+    }
+    
     @objc func handleLongPress(longPressGesture: UILongPressGestureRecognizer) {
         print("LONGPRESS")
         let point = longPressGesture.location(in: self.tableview)
@@ -366,23 +581,24 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             /* get the data for the correct ride */
             /* display view with data */
             if rideList.count > indexPath!.row {
+                let rideFromTable = rideList[indexPath!.row]
+                self.setUpDetailView(ride: rideFromTable)
                 clearScreen.layer.addSublayer(popOutShadow)
-                view.addSubviewWithZoomInAnimation(screenMask, duration: 0.02, options: UIView.AnimationOptions.curveEaseOut)
-                view.addSubviewWithZoomInAnimation(clearScreen, duration: 0.15, options: .curveEaseOut)
-                
-                view.addSubviewWithZoomInAnimation(popOutDetailView, duration: 0.15, options: .curveEaseOut)
+                view.addSubviewWithFadeAnimation(screenMask, duration: 0.2, options: UIView.AnimationOptions.curveEaseOut)
+                view.addSubviewWithSlideBottom(clearScreen, duration: 0.2, options: .curveEaseOut)
+                view.addSubviewWithSlideBottom(popOutDetailView, duration: 0.2, options: .curveEaseInOut)
             }
             else { print("No ride in this row")}
             
         }
         else if(longPressGesture.state == UIGestureRecognizer.State.ended) {
             print("Long touch ended")
-            screenMask.removeWithZoomOutAnimation(duration: 0.1, options: .curveEaseOut)
-            clearScreen.removeWithZoomOutAnimation(duration: 0.1, options: .curveEaseOut)
-            popOutDetailView.removeWithZoomOutAnimation(duration: 0.1, options: .curveEaseOut)
+            
+            screenMask.removeWithSlideOut(duration: 0.2, options: .curveLinear)
+            clearScreen.removeWithSlideOut(duration: 0.2, options: .curveEaseInOut)
+            popOutDetailView.removeWithSlideOut(duration: 0.2, options: .curveEaseOut)
             
         }
-        
     }
     
     
@@ -438,9 +654,9 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             }
             else if let response = directionsResponse, response.routes.count > 0 {
                 self.currentRoute = response.routes[0]
-                let travelTime = self.currentRoute?.expectedTravelTime
-                print("Travel Time: ", travelTime?.description ?? "travel Time failed")
-                ride.timeTillPickup = travelTime?.description as! String
+                let travelTime = Int(self.currentRoute!.expectedTravelTime / 60)
+                print("Travel Time: ", travelTime.description )
+                ride.timeTillPickup = travelTime.description
             }
             else {print("Class: HPVC      Func: ConstructRoute --- in else")}
         })
@@ -469,11 +685,12 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             "Name": ride.name,
             "stp_id": ride.stp_id,
             "driverName": UD.string(forKey: "name") ?? "Name not set" , //TODO: take care of case where the Driver name is not set
-            "carMake" : UD.string(forKey: "car_maker")!,
-            "carModel" : UD.string(forKey: "car_model")!,
-            "color" : UD.string(forKey: "car_color")!,
-            "carSeats" : String(UD.string(forKey: "car_seats")!),
-            "code" : rideCode
+            "carMake" : UD.string(forKey: "car_maker") ?? "not specified",
+            "carModel" : UD.string(forKey: "car_model") ?? "not specified",
+            "color" : UD.string(forKey: "car_color") ?? "not specified",
+            "carSeats" : String(UD.string(forKey: "car_seats") ?? "N/A"),
+            "code" : rideCode,
+            "timeTillPickup": ride.timeTillPickup
         ])
     }
     
@@ -673,6 +890,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             vc.user = self.user
             vc.fireStore = fstore
             vc.rideCode = self.rideCode
+            vc.timeTillPickup = self.timeTillPickup
         }
     }
 }
@@ -759,8 +977,8 @@ class RideCell: UITableViewCell{
         cellView.addSubview(rideValueLabel)
         cellView.addSubview(toLabel)
         cellView.addSubview(fromLabel)
-        
-        self.selectionStyle = .blue
+        let shadow = cellView.addShadow(x: self.cellView.frame.minX, y: self.cellView.frame.minY, width: self.cellView.frame.width, height: self.cellView.frame.height, shadowColor: .black, shadowOpacity: 0.9, shadowOffset: 3, shadowRadius: 5, view: self)
+        cellView.layer.addSublayer(shadow)
         
         NSLayoutConstraint.activate([
             cellView.topAnchor.constraint(equalTo: self.topAnchor, constant: verticleBuffer),

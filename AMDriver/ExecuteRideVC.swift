@@ -25,6 +25,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     var fireStore: Firestore!
     var paymentIntentClientSecret: String!
     var rideCode: String = ""
+    var timeTillPickup: String = ""
     
     let statusTitleMessages = [ "Enroute to Rider", "Waiting at Pickup for Rider", "On Trip to Dropoff"]
     let statusButtonMessages = [ "I've Arrived", "Start Trip", "Finish Trip"]
@@ -86,6 +87,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        fireStore = Firestore.firestore()
         rideInfo.append(name)
         rideInfo.append(pickupLoc)
         rideInfo.append(dropoffLoc)
@@ -106,15 +108,6 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         titleStatusLabel.heightAnchor.constraint(equalToConstant: titleHeight).isActive = true
         titleStatusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         titleStatusLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: titleY).isActive = true
-        
-        
-        /* (DO I NEED THIS) -> all info can be passed in?
-         //establishing current user
-         
-         CUid = user?.uid
-         //Set up firestore reference
-         fstore = Firestore.firestore()
-         */
     }
     
     

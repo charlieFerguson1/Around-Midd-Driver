@@ -32,6 +32,21 @@ class firestoreQueries {
         }
     }
     
+    func addTimeTillArrival(rideTag: String, fstore: Firestore, time: String) {
+        print("Ride Tag FSQ: ", rideTag)
+        var ref: DocumentReference? = nil
+        ref = fstore.collection("ClaimedRides").document(rideTag)
+        ref?.updateData([
+            "timeTillArrival" : time
+        ]){ err in
+            if let err = err {
+                print("Error updating document *addClientSecret*: \(err)")
+            } else {
+                print("Document successfully updated -- added client Sectet")
+            }
+        }
+    }
+    
     func removeRideFromClaimed(rideTag: String, fstore: Firestore){
         print("givenID  **Delete ride**: ", rideTag)
         fstore.collection("ClaimedRides").whereField("rideID", isEqualTo: rideTag).getDocuments() {(snapshot, err) in
