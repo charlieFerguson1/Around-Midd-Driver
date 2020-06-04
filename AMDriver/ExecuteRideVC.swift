@@ -27,7 +27,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     var rideCode: String = ""
     var timeTillPickup: String = ""
     
-    let statusTitleMessages = [ "Enroute to Rider", "Waiting at Pickup for Rider", "On Trip to Dropoff"]
+    let statusTitleMessages = [ "On Route to Rider", "Waiting at Pickup for Rider", "On Trip to Dropoff"]
     let statusButtonMessages = [ "I've Arrived", "Start Trip", "Finish Trip"]
     var statusPhase = 0
     
@@ -333,6 +333,43 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         return time
     }
     
+    
+    func riderCanceledActiveRide() -> ListenerRegistration {
+        let listener = fireStore.collection("ClaimedRides").addSnapshotListener { querySnapshot, error in
+            guard let snapshot = querySnapshot else {
+                print("Error fetching document: \(error!)")
+                return
+            }
+            snapshot.documentChanges.forEach { diff in
+                if (diff.type == .removed) {
+                    
+                    if diff.document.data()["rideID"] != nil {
+                        print("Class: ExecuteRideVC     Func: CancelRideListner \n  >rideId(class value): \(self.rideID)\n   >rideId(data value): \(diff.document.data()["rideID"])")
+                        if diff.document.data()["rideID"] as? String == self.rideID  {
+                            print("the active ride has been deleted")
+                            self.presentWarning(title: "Ride has been canceled", message: "The user canceled the ride, they have been charged a default fee of $5, we may have questions for you if they apeal this charge")
+                            self.performSegue(withIdentifier: "Return Home" , sender: self)
+                            /* reset user defaults and what not */
+                        } else {
+                            print("someone else's ride canceled")
+                            /*
+                             this could be a good place to give the user an update on how many
+                             people are waiting for a ride, and maybe prompt them to add a tip
+                             */
+                        }
+                    }
+                }
+            }
+        }
+        return listener
+    }
+    
+    func presentWarning(title: String, message: String) {
+        let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let alertAction = UIAlertAction(title: "OK", style: .default)
+        alertController.addAction(alertAction)
+        present(alertController, animated: true)
+    }
     
 }
 

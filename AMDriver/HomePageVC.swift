@@ -441,12 +441,24 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         //if index is higher than number of rides
         if(indexPath.row >= rideList.count){
             //set values to null
-            cell.numRidersLabel.text = "Waiting for ride requests"
-            cell.fromLabel.text = ""
-            cell.toLabel.text = ""
-            cell.rideValueLabel.text = ""
+            if (indexPath.row == 0)
+            {
+                cell.numRidersLabel.text = "Waiting for ride requests"
+                cell.numRidersLabel.numberOfLines = 2
+                cell.fromLabel.text = ""
+                cell.toLabel.text = ""
+                cell.rideValueLabel.text = ""
+            } else  {
+                cell.cellView.backgroundColor = customIndigo
+                cell.numRidersLabel.text = ""
+                cell.fromLabel.text = ""
+                cell.toLabel.text = ""
+                cell.rideValueLabel.text = ""
+                cell.rideLabel.text = ""
+            }
         }
         else{
+            cell.cellView.backgroundColor = .black
             if(Int(rideList[indexPath.row].riders) ?? 1 > 1){
                 cell.numRidersLabel.text = String(rideList[indexPath.row].riders) + " Riders"
             }
@@ -536,6 +548,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         timeToPickUpValuePODV.text = ride.timeTillPickup
         pickupValue.text = ride.pickUpLoc
         dropoffValue.text = ride.dropOffLoc
+        numRidersValue.text = ride.riders
         
         
         self.podvViews.append(driveValuePODVTitle)
@@ -585,8 +598,14 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                 self.setUpDetailView(ride: rideFromTable)
                 clearScreen.layer.addSublayer(popOutShadow)
                 view.addSubviewWithFadeAnimation(screenMask, duration: 0.2, options: UIView.AnimationOptions.curveEaseOut)
-                view.addSubviewWithSlideBottom(clearScreen, duration: 0.2, options: .curveEaseOut)
+                //slide in
+                /*view.addSubviewWithSlideBottom(clearScreen, duration: 0.2, options: .curveEaseOut)
                 view.addSubviewWithSlideBottom(popOutDetailView, duration: 0.2, options: .curveEaseInOut)
+                */
+                //fade in
+                view.addSubviewWithFadeAnimation(clearScreen, duration: 0.2, options: .curveEaseOut)
+                view.addSubviewWithFadeAnimation(popOutDetailView, duration: 0.2, options: .curveEaseInOut)
+                
             }
             else { print("No ride in this row")}
             
@@ -665,14 +684,14 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     
     func createCode() -> String{
         let randWord = codeWords[Int.random(in: 0 ... 10)]
-        let randNum = codeNum[Int.random(in: 0 ... 10)]
-        
+        let randNum = codeNum[Int.random(in: 0 ... 9)]
         return randWord + randNum
     }
     /*
      can this be moved to an external class?
      */
     func moveRideToClaimed(ride: Ride) {
+        print("ClassL HPVC      Func: MoveRideToClaimed")
         let time: NSDate = ride.time ?? getTime()
         rideCode = createCode()
         fstore.collection("ClaimedRides").document(ride.rideID).setData([
@@ -900,13 +919,14 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
 class RideCell: UITableViewCell{
     
     let verticleBuffer = CGFloat(4)
-    
+    let customIndigo: UIColor = UIColor(red: 38/255.0, green: 61/255.0, blue: 66/255.0, alpha: 1)
+
     
     //basic cell setup
     let cellView: UIView = {
         let view = UIView()
         let customPink : UIColor = UIColor(red: 220/255.0, green: 191/255.0, blue: 255/255.0, alpha: 1)
-        view.backgroundColor = customPink
+        view.backgroundColor = .black
         view.layer.cornerRadius = 5
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
