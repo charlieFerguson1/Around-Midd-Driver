@@ -49,7 +49,8 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     
     let rideLabels = ["Name", "Pickup", "Dropoff", "# riders", "Earn"]
     var rideInfo: Array<String> = Array()
-    
+    var listener: ListenerRegistration!
+
     var customerContext = STPCustomerContext(keyProvider: MyAPIClient())
     var paymentContext: STPPaymentContext!
     
@@ -95,6 +96,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         rideInfo.append(String(rideValue))
         print(rideInfo)
         print("view will appear end")
+        listener = riderCanceledActiveRide()
     }
     
     override func viewDidLoad() {
@@ -108,6 +110,12 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         titleStatusLabel.heightAnchor.constraint(equalToConstant: titleHeight).isActive = true
         titleStatusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
         titleStatusLabel.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: titleY).isActive = true
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        if listener != nil {
+            listener.remove()
+        }
     }
     
     
@@ -156,7 +164,6 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             deleteDocFromWaitingList(ride: ride, collection: "WaitingForDriver")
             let time: NSDate = ride.time ?? getTime()
             firestoreQueries().addToCollection(ride: ride, collection: "Ride List", time: time, fireStore: self.fireStore)
-            performSegue(withIdentifier: "Return Home", sender: self)
         }
         else{
             print("the user has no ride... something is wrong - maybe the rider canceled")
@@ -342,7 +349,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             }
             snapshot.documentChanges.forEach { diff in
                 if (diff.type == .removed) {
-                    
+                    print("diff removed")
                     if diff.document.data()["rideID"] != nil {
                         print("Class: ExecuteRideVC     Func: CancelRideListner \n  >rideId(class value): \(self.rideID)\n   >rideId(data value): \(diff.document.data()["rideID"])")
                         if diff.document.data()["rideID"] as? String == self.rideID  {
@@ -366,7 +373,9 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     
     func presentWarning(title: String, message: String) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let alertAction = UIAlertAction(title: "OK", style: .default)
+        let alertAction = UIAlertAction(title: "OK", style: .default, handler: { (action: UIAlertAction!) in
+            self.performSegue(withIdentifier: "Return Home", sender: self)
+        })
         alertController.addAction(alertAction)
         present(alertController, animated: true)
     }

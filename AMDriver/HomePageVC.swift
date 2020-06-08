@@ -83,7 +83,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     // *** tableView declarataion:
     let tableview: UITableView = {
         let tv = UITableView()
-        tv.backgroundColor = UIColor.white
+        tv.backgroundColor = UIColor.clear
         tv.translatesAutoresizingMaskIntoConstraints = false
         tv.separatorColor = UIColor.white
         return tv
@@ -109,7 +109,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         driveSwitch.translatesAutoresizingMaskIntoConstraints = false
         label.text = "Driving"
         label.font = UIFont(name: "Copperplate", size: 24)
-        label.textColor = self.customPurple
+        label.textColor = .black
         return label
     }()
     
@@ -119,12 +119,12 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     lazy var logoutButton: UIButton = {
         let logoutBtn = UIButton(frame: CGRect(x: self.logoutButtonX, y: self.logoutButtonY, width: 100, height: 40))
         logoutBtn.setTitle( "Logout", for: .normal)
-        logoutBtn.setTitleColor( self.customPink, for: .normal)
+        logoutBtn.setTitleColor( .black, for: .normal)
         logoutBtn.titleLabel!.font = UIFont(name: "Copperplate", size: 24)
         logoutBtn.layer.cornerRadius = 5.0
         
         logoutBtn.layer.masksToBounds = true
-        logoutBtn.layer.borderColor = customPink.cgColor
+        logoutBtn.layer.borderColor = UIColor.black.cgColor
         logoutBtn.layer.borderWidth = 1.0
         
         logoutBtn.addTarget(self, action: #selector(didLogout), for: .touchUpInside)
@@ -139,7 +139,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         screenTitle.text = "Select a Ride to Pick Up"
         screenTitle.font = UIFont(name: "Copperplate-Bold", size: 42)
         screenTitle.textAlignment = .center
-        screenTitle.textColor = self.customPurple
+        screenTitle.textColor = .black
         screenTitle.numberOfLines = 2
         return screenTitle
     }()
@@ -403,7 +403,9 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     
     override func viewWillDisappear(_ animated: Bool) {
         //detatch listener for labels
-        listener.remove()
+        if listener != nil {
+            listener.remove()
+        }
     }
     
     
@@ -449,7 +451,8 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                 cell.toLabel.text = ""
                 cell.rideValueLabel.text = ""
             } else  {
-                cell.cellView.backgroundColor = customIndigo
+                cell.cellView.backgroundColor = self.customIndigo
+                cell.cellView.layer.borderColor = UIColor.gray.cgColor
                 cell.numRidersLabel.text = ""
                 cell.fromLabel.text = ""
                 cell.toLabel.text = ""
@@ -918,7 +921,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
 
 class RideCell: UITableViewCell{
     
-    let verticleBuffer = CGFloat(4)
+    let verticleBuffer = CGFloat(3)
     let customIndigo: UIColor = UIColor(red: 38/255.0, green: 61/255.0, blue: 66/255.0, alpha: 1)
 
     
@@ -936,7 +939,7 @@ class RideCell: UITableViewCell{
     let rideLabel: UILabel = {
         let label = UILabel()
         label.text = "Ride 1"
-        label.textColor = UIColor.black
+        label.textColor = .darkGray
         label.font = UIFont(name: "Copperplate", size: 30)
         label.translatesAutoresizingMaskIntoConstraints = false
         label.textAlignment = .center
