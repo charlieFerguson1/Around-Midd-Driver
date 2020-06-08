@@ -109,7 +109,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         driveSwitch.translatesAutoresizingMaskIntoConstraints = false
         label.text = "Driving"
         label.font = UIFont(name: "Copperplate", size: 24)
-        label.textColor = .black
+        label.textColor = self.customIndigo
         return label
     }()
     
@@ -119,12 +119,12 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     lazy var logoutButton: UIButton = {
         let logoutBtn = UIButton(frame: CGRect(x: self.logoutButtonX, y: self.logoutButtonY, width: 100, height: 40))
         logoutBtn.setTitle( "Logout", for: .normal)
-        logoutBtn.setTitleColor( .black, for: .normal)
+        logoutBtn.setTitleColor( self.customIndigo, for: .normal)
         logoutBtn.titleLabel!.font = UIFont(name: "Copperplate", size: 24)
         logoutBtn.layer.cornerRadius = 5.0
         
         logoutBtn.layer.masksToBounds = true
-        logoutBtn.layer.borderColor = UIColor.black.cgColor
+        logoutBtn.layer.borderColor = self.customIndigo.cgColor
         logoutBtn.layer.borderWidth = 1.0
         
         logoutBtn.addTarget(self, action: #selector(didLogout), for: .touchUpInside)
@@ -139,7 +139,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         screenTitle.text = "Select a Ride to Pick Up"
         screenTitle.font = UIFont(name: "Copperplate-Bold", size: 42)
         screenTitle.textAlignment = .center
-        screenTitle.textColor = .black
+        screenTitle.textColor = self.customIndigo
         screenTitle.numberOfLines = 2
         return screenTitle
     }()
@@ -364,7 +364,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = customIndigo
+        view.backgroundColor = .black
         setupTableView()
         view.addSubview(driveSwitch)
         view.addSubview(driveSwitchLabel)
@@ -417,7 +417,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         tableview.dataSource = self
         
         tableview.separatorStyle = .none
-        tableview.backgroundColor = customIndigo
+        tableview.backgroundColor = .black
         tableview.register(RideCell.self, forCellReuseIdentifier: "cellId")
         view.addSubview(tableview)
         
@@ -430,14 +430,18 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        var visableRides = rideList.count
+        if visableRides > 4 {
+            visableRides = 4
+        } else if visableRides == 0 {
+            visableRides = 1
+        }
         return visableRides
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        print(indexPath.row)
-        
         let cell = tableview.dequeueReusableCell(withIdentifier: "cellId", for: indexPath) as! RideCell
-        cell.backgroundColor = self.customIndigo
+        cell.backgroundColor = .black
         cell.selectionStyle = .none
         cell.rideLabel.text = "Ride \(indexPath.row+1)"
         //if index is higher than number of rides
@@ -451,7 +455,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                 cell.toLabel.text = ""
                 cell.rideValueLabel.text = ""
             } else  {
-                cell.cellView.backgroundColor = self.customIndigo
+                cell.cellView.backgroundColor = .black
                 cell.cellView.layer.borderColor = UIColor.gray.cgColor
                 cell.numRidersLabel.text = ""
                 cell.fromLabel.text = ""
@@ -461,7 +465,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             }
         }
         else{
-            cell.cellView.backgroundColor = .black
+            cell.cellView.backgroundColor = self.customIndigo
             if(Int(rideList[indexPath.row].riders) ?? 1 > 1){
                 cell.numRidersLabel.text = String(rideList[indexPath.row].riders) + " Riders"
             }
@@ -508,8 +512,8 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         if(rideList.count > indexPath.row)
         {
             if(isDriving) {
-                //should also check to see if the driver is already driving
-                didPickupRide(row: indexPath.row) //updates database
+                //pass a single ride instead of this mess...
+                didPickupRide(row: indexPath.row) // updates database
                 
                 passPickup = rideList[indexPath.row].pickUpLoc
                 passDropoff = rideList[indexPath.row].dropOffLoc
@@ -523,7 +527,6 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                 
                 /* update DB to refelct the fact that the ride has been picked up and has a TTPU
                  - maybe this should be just a passed value that is then sent to the DB n the next VC*/
-                
                 
                 performSegue(withIdentifier: "PickedUp", sender: self)
             }
@@ -747,18 +750,22 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                     if diff.document.data()["rideID"] != nil {
                         let rideIDData = diff.document.data()["rideID"] as! String
                         if rideIDData != "" {
-                            self.rideFromData(data: diff.document.data())
+                            /* need to add the ride to the ride list */
+                            /* the ride should be checked for being visable on the ride table */
+                            let ride = self.rideFromData(data: diff.document.data())
+                            self.rideList.append(ride)
+                            self.getRideTime(ride: ride , index: self.rideList.count - 1)
                             print("RIDE LIST (listner):", self.rideList)
-                            self.updateTableFromListner()
+                            self.tableview.reloadData()
                         }
                     }
                 }
                 if (diff.type == .modified) {
                     print("************MOD************")
+                    /* need to add the ride to the ride list */
+                    /* the ride should be checked for being visable on the ride table */
+                    /* the duplicated ride should be removed */
                     print(" Modified ride: \(diff.document.data())")
-                    self.rideFromData(data: diff.document.data())
-                    print("RIDE LIST (listner):", self.rideList)
-                    self.updateTableFromListner()
                 }
                 if (diff.type == .removed) {
                     print("************REMOVING************")
@@ -768,7 +775,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                         let RID = diff.document.data()["rideID"] as! String
                         self.removeSpecificRide(rideID: RID)
                         print("RIDELIST in remove: ", self.rideList)
-                        self.updateTableFromListner()
+                        self.tableview.reloadData()
                     }
                     else {
                         print("Ride not on database")
@@ -777,10 +784,6 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             }
         }
         return listener
-    }
-    
-    func updateTableFromListner() {
-        tableview.reloadData()
     }
     
     /// Removes a ride specified by the ride tag string from the local array.
@@ -800,7 +803,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     /// This array is predominantly used to disply rides to the driver
     /// if the ride is in the first 4 rides in the array it sets the value of TTPU
     /// - Parameter data: data description from a firestore query
-    func rideFromData(data: [String : Any])  {
+    func rideFromData(data: [String : Any]) -> Ride {
         let pickup = data["PickupLoc"] as! String
         let drop = data["DropoffLoc"] as! String
         let id = data["currentUid"] as! String
@@ -810,10 +813,15 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         let stp_id = data["stp_id"] ?? "this is an old ride"
         
         let ride = Ride(pickUpLoc: pickup, dropOffLoc: drop, UId: id, riders: riders, rideID: rideID, name: name, stp_id: stp_id as! String)
-        self.rideList.append(ride)
         let rideCount = self.rideList.count
-        if rideCount <= 4 {
-            let ride = rideList[rideCount - 1]
+        return ride
+    }
+    
+    /// if the ride given to the
+    /// - Parameter ride: the ride that the ride time would be calculated and added to
+    /// - Parameter index: current index of the ride in the ride list
+    func getRideTime(ride: Ride, index: Int){
+        if index <= 4 {
             if driverLocation != nil {
                 constructRoute(userLocation: driverLocation!, ride: ride)
             }

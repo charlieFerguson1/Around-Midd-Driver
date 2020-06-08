@@ -31,6 +31,8 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     let statusButtonMessages = [ "I've Arrived", "Start Trip", "Finish Trip"]
     var statusPhase = 0
     
+    var driverCancelRide: Bool = false //this is so that the listner can skip logic if driver cancels ride
+    
     
     var rideValue: Int = 0
     var user: User?
@@ -152,28 +154,6 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         return button
     }()
     
-    @objc func didCancelRide() {
-        print("Cancel ride pressed!!")
-        let ride = Ride(pickUpLoc: pickupLoc, dropOffLoc: dropoffLoc, UId: CUid, riders: numRiders ?? "1", rideID: rideID ?? "NO RIDE", name: name, stp_id: stp_id )
-        ride.time = time
-        ride.value = rideValue
-        
-        
-        //potentially add a warning for when this is the only ride in the list..
-        if(inRide) {
-            deleteDocFromWaitingList(ride: ride, collection: "WaitingForDriver")
-            let time: NSDate = ride.time ?? getTime()
-            firestoreQueries().addToCollection(ride: ride, collection: "Ride List", time: time, fireStore: self.fireStore)
-        }
-        else{
-            print("the user has no ride... something is wrong - maybe the rider canceled")
-        }
-        
-        //if the driver has a ride -- should always have one
-        //cancel ride, add back to ride list (in the front..)
-        //put driver back to the choose ride screen
-    }
-    
     lazy var updateStatusBtn: UIButton = {
         let buttonWidth: CGFloat = self.screenSize.width/2 - 30
         let button = UIButton(frame: CGRect(x: CGFloat(45 + buttonWidth), y: self.screenSize.height + self.offBottomBtn, width: buttonWidth, height: CGFloat(self.btnHeight)))
@@ -278,6 +258,26 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         //code for what to do
     }
     
+    @objc func didCancelRide() {
+        print("Cancel ride pressed!!")
+        let ride = Ride(pickUpLoc: pickupLoc, dropOffLoc: dropoffLoc, UId: CUid, riders: numRiders ?? "1", rideID: rideID ?? "NO RIDE", name: name, stp_id: stp_id )
+        ride.time = time
+        ride.value = rideValue
+        
+        //potentially add a warning for when this is the only ride in the list..
+        if(inRide) {
+            driverCancelRide = true     // this allows the listner to ignore the logic for the user delete
+            deleteDocFromWaitingList(ride: ride, collection: "ClaimedRides")
+            let time: NSDate = ride.time ?? getTime()
+            /* should this addToCollection be canceled? */
+            firestoreQueries().addToCollection(ride: ride, collection: "Ride List", time: time, fireStore: self.fireStore)
+        }
+        else{
+            print("the user has no ride... something is wrong - maybe the rider canceled")
+        }
+    }
+    
+    // TODO: Move to firestorequerries?
     func deleteDocFromWaitingList(ride: Ride, collection: String) {
         let riderideID = ride.rideID
         
@@ -288,10 +288,10 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             } else {
                 print("DELETEDOCFROMRIDELIST: Document successfully removed!")
                 print("DOC ID: ", riderideID)
+                
             }
         }
     }
-    
     
     /*
      adds ride to specified location in DB
@@ -352,9 +352,13 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
                     print("diff removed")
                     if diff.document.data()["rideID"] != nil {
                         print("Class: ExecuteRideVC     Func: CancelRideListner \n  >rideId(class value): \(self.rideID)\n   >rideId(data value): \(diff.document.data()["rideID"])")
-                        if diff.document.data()["rideID"] as? String == self.rideID  {
+                        if diff.document.data()["rideID"] as? String == self.rideID {
                             print("the active ride has been deleted")
-                            self.presentWarning(title: "Ride has been canceled", message: "The user canceled the ride, they have been charged a default fee of $5, we may have questions for you if they apeal this charge")
+                            if self.driverCancelRide {
+                                print("The driver canceled the ride")
+                            } else {
+                                self.presentWarning(title: "Ride has been canceled", message: "The user canceled the ride, they have been charged a default fee of $5, we may have questions for you if they apeal this charge")
+                            }
                             self.performSegue(withIdentifier: "Return Home" , sender: self)
                             /* reset user defaults and what not */
                         } else {
