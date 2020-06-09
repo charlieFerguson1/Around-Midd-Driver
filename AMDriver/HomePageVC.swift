@@ -525,10 +525,9 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                 rideFstId = rideList[indexPath.row].UId
                 timeTillPickup = rideList[indexPath.row].timeTillPickup
                 
+                performSegue(withIdentifier: "PickedUp", sender: self)
                 /* update DB to refelct the fact that the ride has been picked up and has a TTPU
                  - maybe this should be just a passed value that is then sent to the DB n the next VC*/
-                
-                performSegue(withIdentifier: "PickedUp", sender: self)
             }
             else {
                 presentWarning(title: "Warning", message: "You are not currently in driving mode. Please switch on driving to select a ride")
@@ -750,13 +749,9 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                     if diff.document.data()["rideID"] != nil {
                         let rideIDData = diff.document.data()["rideID"] as! String
                         if rideIDData != "" {
-                            /* need to add the ride to the ride list */
-                            /* the ride should be checked for being visable on the ride table */
-                            let ride = self.rideFromData(data: diff.document.data())
-                            self.rideList.append(ride)
-                            self.getRideTime(ride: ride , index: self.rideList.count - 1)
-                            print("RIDE LIST (listner):", self.rideList)
-                            self.tableview.reloadData()
+                            self.rideFromData(data: diff.document.data())
+                            print("RIDE LIST (listner - added):\n   >", self.rideList)
+                            self.updateTableFromListner()
                         }
                     }
                 }
@@ -765,7 +760,23 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                     /* need to add the ride to the ride list */
                     /* the ride should be checked for being visable on the ride table */
                     /* the duplicated ride should be removed */
+                    /* search ridelist and replace the ride with the specified ride id */
+                    
                     print(" Modified ride: \(diff.document.data())")
+                    if diff.document.data()["rideID"] != nil {
+                        let data = diff.document.data()
+                        let rideID: String = data["rideID"] as! String
+                        /* search local Ridelist for rideID */
+                        let index: Int = self.searchForRideID(rideID: rideID)
+                        if index >= 0 {
+                            self.rideList.remove(at: index)
+                        }
+                        else { print("Class: HPVC       Func: listner\n     > no ride with rideID (\(rideID)) found in rideList")}
+                    }
+                    self.rideFromData(data: diff.document.data())
+                    //     > add this ride
+                    print("RIDE LIST (listner - modified):\n   >", self.rideList)
+                    self.updateTableFromListner()
                 }
                 if (diff.type == .removed) {
                     print("************REMOVING************")
@@ -775,7 +786,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                         let RID = diff.document.data()["rideID"] as! String
                         self.removeSpecificRide(rideID: RID)
                         print("RIDELIST in remove: ", self.rideList)
-                        self.tableview.reloadData()
+                        self.updateTableFromListner()
                     }
                     else {
                         print("Ride not on database")
@@ -784,6 +795,21 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             }
         }
         return listener
+    }
+    
+    func updateTableFromListner() {
+        tableview.reloadData()
+    }
+    
+    func searchForRideID(rideID: String) -> Int {
+        var count = 0
+        for ride in rideList {
+            if ride.rideID == rideID {
+                return count
+            }
+            count = count + 1
+        }
+        return -1
     }
     
     /// Removes a ride specified by the ride tag string from the local array.
@@ -803,7 +829,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     /// This array is predominantly used to disply rides to the driver
     /// if the ride is in the first 4 rides in the array it sets the value of TTPU
     /// - Parameter data: data description from a firestore query
-    func rideFromData(data: [String : Any]) -> Ride {
+    func rideFromData(data: [String : Any])  {
         let pickup = data["PickupLoc"] as! String
         let drop = data["DropoffLoc"] as! String
         let id = data["currentUid"] as! String
@@ -813,15 +839,10 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         let stp_id = data["stp_id"] ?? "this is an old ride"
         
         let ride = Ride(pickUpLoc: pickup, dropOffLoc: drop, UId: id, riders: riders, rideID: rideID, name: name, stp_id: stp_id as! String)
+        self.rideList.append(ride)
         let rideCount = self.rideList.count
-        return ride
-    }
-    
-    /// if the ride given to the
-    /// - Parameter ride: the ride that the ride time would be calculated and added to
-    /// - Parameter index: current index of the ride in the ride list
-    func getRideTime(ride: Ride, index: Int){
-        if index <= 4 {
+        if rideCount <= 4 {
+            let ride = rideList[rideCount - 1]
             if driverLocation != nil {
                 constructRoute(userLocation: driverLocation!, ride: ride)
             }
@@ -872,17 +893,19 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
      can I move this to an external class (firestore queires)?
      - if I move this, pass a rideId instead of the row
      */
+    
+    /* maybe add a completion statement that moves to next vc so that everything is done before the driver is given the next view*/
     func deleteDocFromRideList(row: Int) {
         let ride = rideList[row]
-        let riderideID = ride.rideID
+        let rideID = ride.rideID
         
-        print("RIDE DOC ID - DELETEDOCFROMRIDELIST:", riderideID)
-        fstore.collection("Ride List").document(riderideID).delete() { err in
+        print("RIDE DOC ID - DELETEDOCFROMRIDELIST:", rideID)
+        fstore.collection("Ride List").document(rideID).delete() { err in
             if let err = err {
                 print("Error removing document: \(err)")
             } else {
                 print("DELETEDOCFROMRIDELIST: Document successfully removed!")
-                print("DOC ID: ", riderideID)
+                print("DOC ID: ", rideID)
             }
         }
     }
