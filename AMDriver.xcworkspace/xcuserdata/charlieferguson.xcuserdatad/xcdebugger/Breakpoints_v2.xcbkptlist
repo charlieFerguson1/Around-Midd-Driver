@@ -7,54 +7,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "C3E6D0D5-2389-4FE6-BCF0-0DD5B575BF81"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AMDriver/HomePageVC.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "759"
-            endingLineNumber = "759"
-            landmarkName = "labelListener()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "7A7522C4-A904-4A8D-A190-8BF3A2A91FF2"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AMDriver/HomePageVC.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "747"
-            endingLineNumber = "747"
-            landmarkName = "labelListener()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "4F5A5CB7-51B5-4162-AD0E-A4B81B4ADFA8"
-            shouldBeEnabled = "Yes"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "AMDriver/HomePageVC.swift"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "782"
-            endingLineNumber = "782"
-            landmarkName = "labelListener()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "0C550BE5-F8DB-438E-BB81-12B125DDBA7A"
             shouldBeEnabled = "Yes"
             ignoreCount = "0"
@@ -62,8 +14,8 @@
             filePath = "AMDriver/HomePageVC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "819"
-            endingLineNumber = "819"
+            startingLineNumber = "810"
+            endingLineNumber = "810"
             landmarkName = "removeSpecificRide(rideID:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -78,8 +30,8 @@
             filePath = "AMDriver/HomePageVC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "907"
-            endingLineNumber = "907"
+            startingLineNumber = "898"
+            endingLineNumber = "898"
             landmarkName = "deleteDocFromRideList(row:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -142,8 +94,8 @@
             filePath = "AMDriver/HomePageVC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "805"
-            endingLineNumber = "805"
+            startingLineNumber = "796"
+            endingLineNumber = "796"
             landmarkName = "searchForRideID(rideID:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -158,8 +110,8 @@
             filePath = "AMDriver/HomePageVC.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "807"
-            endingLineNumber = "807"
+            startingLineNumber = "798"
+            endingLineNumber = "798"
             landmarkName = "searchForRideID(rideID:)"
             landmarkType = "7">
          </BreakpointContent>

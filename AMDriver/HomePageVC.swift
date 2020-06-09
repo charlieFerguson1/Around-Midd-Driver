@@ -736,6 +736,10 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
          */
     }
     
+    /// Listned to the Ride List collection for changes {add, mod, remove} when a ride is added to the collection, the local ridelist
+    /// is updated to reflect this. If a ride is modified, the local rideLIst is searched, removing a ride that has the same rideID before adding
+    /// the modified ride. If a ride is removed, the local rideList is updated to reflect the change
+    /// - Returns: the listner
     func labelListener() -> ListenerRegistration {
         let listener = fstore.collection("Ride List").addSnapshotListener { querySnapshot, error in
             guard let snapshot = querySnapshot else {
@@ -744,25 +748,15 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             }
             snapshot.documentChanges.forEach { diff in
                 if (diff.type == .added) {
-                    print("************ADDING************")
-                    print(" New ride: \(diff.document.data())")
                     if diff.document.data()["rideID"] != nil {
                         let rideIDData = diff.document.data()["rideID"] as! String
                         if rideIDData != "" {
                             self.rideFromData(data: diff.document.data())
-                            print("RIDE LIST (listner - added):\n   >", self.rideList)
                             self.updateTableFromListner()
                         }
                     }
                 }
                 if (diff.type == .modified) {
-                    print("************MOD************")
-                    /* need to add the ride to the ride list */
-                    /* the ride should be checked for being visable on the ride table */
-                    /* the duplicated ride should be removed */
-                    /* search ridelist and replace the ride with the specified ride id */
-                    
-                    print(" Modified ride: \(diff.document.data())")
                     if diff.document.data()["rideID"] != nil {
                         let data = diff.document.data()
                         let rideID: String = data["rideID"] as! String
@@ -779,13 +773,10 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                     self.updateTableFromListner()
                 }
                 if (diff.type == .removed) {
-                    print("************REMOVING************")
-                    print(" Removed ride: \(diff.document.data())")
                     if(diff.document.data()["rideID"] as? String != nil)
                     {
                         let RID = diff.document.data()["rideID"] as! String
                         self.removeSpecificRide(rideID: RID)
-                        print("RIDELIST in remove: ", self.rideList)
                         self.updateTableFromListner()
                     }
                     else {

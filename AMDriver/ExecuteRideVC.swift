@@ -354,8 +354,8 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
                         print("Class: ExecuteRideVC     Func: CancelRideListner \n  >rideId(class value): \(self.rideID)\n   >rideId(data value): \(diff.document.data()["rideID"])")
                         if diff.document.data()["rideID"] as? String == self.rideID {
                             print("the active ride has been deleted")
-                            if self.driverCancelRide {
-                                print("The driver canceled the ride")
+                            if self.driverCancelRide /*|| self.driverCompletedRide */{
+                                print("The driver canceled or completed the ride")
                             } else {
                                 self.presentWarning(title: "Ride has been canceled", message: "The user canceled the ride, they have been charged a default fee of $5, we may have questions for you if they apeal this charge")
                             }
