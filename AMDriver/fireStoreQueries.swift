@@ -79,7 +79,8 @@ class firestoreQueries {
             "Time": time,
             "Riders": ride.riders,
             "rideID": ride.rideID,
-            "Name": ride.name
+            "Name": ride.name,
+            "stp_id": ride.stp_id
         ])
     }
     

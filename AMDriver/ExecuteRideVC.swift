@@ -258,6 +258,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         //code for what to do
     }
     
+    /// collects relevant information for the ride that had been canceled on. Removes the ride from the Caimed rides collection, adds the ride to the Ride List collection
     @objc func didCancelRide() {
         print("Cancel ride pressed!!")
         let ride = Ride(pickUpLoc: pickupLoc, dropOffLoc: dropoffLoc, UId: CUid, riders: numRiders ?? "1", rideID: rideID ?? "NO RIDE", name: name, stp_id: stp_id )
@@ -269,7 +270,6 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             driverCancelRide = true     // this allows the listner to ignore the logic for the user delete
             deleteDocFromWaitingList(ride: ride, collection: "ClaimedRides")
             let time: NSDate = ride.time ?? getTime()
-            /* should this addToCollection be canceled? */
             firestoreQueries().addToCollection(ride: ride, collection: "Ride List", time: time, fireStore: self.fireStore)
         }
         else{
