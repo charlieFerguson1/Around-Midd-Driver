@@ -195,6 +195,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             let ride = Ride(pickUpLoc: pickupLoc, dropOffLoc: dropoffLoc, UId: CUid, riders: numRiders ?? "1", rideID: rideID ?? "NO RIDE", name: name, stp_id: stp_id )
             firestoreQueries().removeRideFromClaimed(rideTag: rideID!, fstore: fireStore)
             let time = getTime()
+            ride.completed = true
             firestoreQueries().addToCollection(ride: ride, collection: "CompletedRides", time: time, fireStore: self.fireStore)
 
             performSegue(withIdentifier: "Return Home", sender: self)

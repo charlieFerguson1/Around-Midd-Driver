@@ -18,6 +18,7 @@ class Ride: CustomStringConvertible {
     var rideID: String
     var name: String
     var value: Int?
+    var completed: Bool?
     var time: NSDate?
     var timeString: String?
     var longitude: String?

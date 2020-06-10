@@ -80,7 +80,8 @@ class firestoreQueries {
             "Riders": ride.riders,
             "rideID": ride.rideID,
             "Name": ride.name,
-            "stp_id": ride.stp_id
+            "stp_id": ride.stp_id,
+            "completed": ride.completed ?? false
         ])
     }
     
