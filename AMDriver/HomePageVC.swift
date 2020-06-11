@@ -714,7 +714,8 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             "color" : UD.string(forKey: "car_color") ?? "not specified",
             "carSeats" : String(UD.string(forKey: "car_seats") ?? "N/A"),
             "code" : rideCode,
-            "timeTillPickup": ride.timeTillPickup
+            "timeTillPickup": ride.timeTillPickup,
+            "completed": false
         ])
     }
     

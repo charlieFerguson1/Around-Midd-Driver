@@ -294,23 +294,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         }
     }
     
-    /*
-     adds ride to specified location in DB
-     */
-    func addToCollection(ride: Ride, collection: String) {
-        let time: NSDate = ride.time ?? getTime()
-        
-        fireStore.collection(collection).document(ride.UId).setData([
-            "PickupLoc": ride.pickUpLoc,
-            "DropoffLoc": ride.dropOffLoc,
-            "currentUid": ride.UId,
-            "Time": time,
-            "Riders": ride.riders,
-            "rideID": ride.rideID,
-            "Name": ride.name
-        ])
-    }
-    
+   
     func rideFromData(data: [String : Any]) -> Ride{
         let pickup = data["PickupLoc"] as! String
         let drop = data["DropoffLoc"] as! String
@@ -319,8 +303,10 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         let rideID = data["rideID"] as! String
         let name = data["Name"] as! String
         let stp_id = data["stp_id"] ?? "this is an old ride"
+        let completed = data["completed"] as! Bool
 
         let ride = Ride(pickUpLoc: pickup, dropOffLoc: drop, UId: id, riders: riders, rideID: rideID, name: name, stp_id: stp_id as! String)
+        ride.completed = completed
         return ride
     }
     
@@ -355,7 +341,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
                         print("Class: ExecuteRideVC     Func: CancelRideListner \n  >rideId(class value): \(self.rideID)\n   >rideId(data value): \(diff.document.data()["rideID"])")
                         if diff.document.data()["rideID"] as? String == self.rideID {
                             print("the active ride has been deleted")
-                            if self.driverCancelRide /*|| self.driverCompletedRide */{
+                            if self.driverCancelRide {
                                 print("The driver canceled or completed the ride")
                             } else {
                                 self.presentWarning(title: "Ride has been canceled", message: "The user canceled the ride, they have been charged a default fee of $5, we may have questions for you if they apeal this charge")
