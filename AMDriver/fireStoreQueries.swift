@@ -20,7 +20,7 @@ class firestoreQueries {
         print("Add secret to FSQ: ", secret)
         print("Ride Tag FSQ: ", rideTag)
         var ref: DocumentReference? = nil
-        ref = fstore.collection("Ride List").document(rideTag)
+        ref = fstore.collection("ClaimedRides").document(rideTag)
         ref?.updateData([
             "clientSecret" : secret
         ]){ err in

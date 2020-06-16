@@ -508,7 +508,6 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
      */
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print(indexPath)
         if(rideList.count > indexPath.row)
         {
             if(isDriving) {
@@ -696,7 +695,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
      can this be moved to an external class?
      */
     func moveRideToClaimed(ride: Ride) {
-        print("ClassL HPVC      Func: MoveRideToClaimed")
+        print("Class:  HPVC      Func: MoveRideToClaimed")
         let time: NSDate = ride.time ?? getTime()
         rideCode = createCode()
         fstore.collection("ClaimedRides").document(ride.rideID).setData([
