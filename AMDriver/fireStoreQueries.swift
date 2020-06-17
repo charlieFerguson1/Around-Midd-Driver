@@ -72,7 +72,7 @@ class firestoreQueries {
     }
     
     func addToCollection(ride: Ride, collection: String, time: NSDate, fireStore: Firestore) {
-        fireStore.collection(collection).document(ride.UId).setData([
+        fireStore.collection(collection).document(ride.rideID).setData([
             "PickupLoc": ride.pickUpLoc,
             "DropoffLoc": ride.dropOffLoc,
             "currentUid": ride.UId,
@@ -81,7 +81,8 @@ class firestoreQueries {
             "rideID": ride.rideID,
             "Name": ride.name,
             "stp_id": ride.stp_id,
-            "completed": ride.completed ?? false
+            "completed": ride.completed ?? false,
+            "canceledOn": ride.canceledOn 
         ])
     }
     

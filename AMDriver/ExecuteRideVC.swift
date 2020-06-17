@@ -66,6 +66,12 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         }
     }
     
+    let canceledRideHandler: (Bool, Ride, ExecuteRideVC) -> Void = {
+        if $0 {
+            firestoreQueries().addToCollection(ride: $1, collection: "Ride List", time: $2.getTime() , fireStore: $2.fireStore)
+        }
+    }
+    
     init() {
         self.paymentContext = STPPaymentContext(customerContext: customerContext)
         super.init(nibName: nil, bundle: nil)
@@ -240,7 +246,6 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        print(indexPath.row)
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "cellId", for: indexPath) as! InfoCell //change this to an info cell.. label and
         cell.backgroundColor = customIndigo
@@ -248,7 +253,6 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         
         if(pickupLoc != nil && dropoffLoc != nil){
             cell.infoLabel.text = String(rideLabels[indexPath.row])
-            print(indexPath.row)
             cell.rideInfo.text = String(rideInfo[indexPath.row])
         }
         else{
@@ -269,9 +273,9 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         //potentially add a warning for when this is the only ride in the list..
         if(inRide) {
             driverCancelRide = true     // this allows the listner to ignore the logic for the user delete
-            deleteDocFromWaitingList(ride: ride, collection: "ClaimedRides")
+            deleteDocFromWaitingList(ride: ride, collection: "ClaimedRides", completion: canceledRideHandler)
             let time: NSDate = ride.time ?? getTime()
-            firestoreQueries().addToCollection(ride: ride, collection: "Ride List", time: time, fireStore: self.fireStore)
+            ride.canceledOn = true
         }
         else{
             print("the user has no ride... something is wrong - maybe the rider canceled")
@@ -279,7 +283,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     }
     
     // TODO: Move to firestorequerries?
-    func deleteDocFromWaitingList(ride: Ride, collection: String) {
+    func deleteDocFromWaitingList(ride: Ride, collection: String, completion: @escaping (Bool, Ride, ExecuteRideVC) -> Void) {
         let riderideID = ride.rideID
         
         print("RIDE DOC ID - delete from collection :", riderideID)
@@ -289,7 +293,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             } else {
                 print("DELETEDOCFROMRIDELIST: Document successfully removed!")
                 print("DOC ID: ", riderideID)
-                
+                completion(true, ride, self)
             }
         }
     }

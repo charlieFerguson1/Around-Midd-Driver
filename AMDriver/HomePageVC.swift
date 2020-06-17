@@ -79,6 +79,12 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     let customIndigo: UIColor = UIColor(red: 38/255.0, green: 61/255.0, blue: 66/255.0, alpha: 1)
     let customPurple : UIColor = UIColor(red: 166/255.0, green: 217/255.0, blue: 247/255.0, alpha: 1)
     
+    let  moveToClaimedHandler: (Bool, Ride, HomePageVC) -> Void = {
+        print("IM HANDELING IT! -- moveToClaimed")
+        if $0 {
+            $2.moveRideToClaimed(ride: $1)
+        }
+    }
     
     // *** tableView declarataion:
     let tableview: UITableView = {
@@ -542,8 +548,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
      - moves doc to driverEnRoute
      */
     func didPickupRide(row: Int) {
-        moveRideToClaimed(ride: rideList[row])
-        deleteDocFromRideList(row: row)
+        moveToClaimed(row: row, completion: self.moveToClaimedHandler)
         setInDrive(inDrive: true)
     }
     
@@ -714,7 +719,8 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             "carSeats" : String(UD.string(forKey: "car_seats") ?? "N/A"),
             "code" : rideCode,
             "timeTillPickup": ride.timeTillPickup,
-            "completed": false
+            "completed": false,
+            "canceledOn": ride.canceledOn
         ])
     }
     
@@ -760,6 +766,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                     if diff.document.data()["rideID"] != nil {
                         let data = diff.document.data()
                         let rideID: String = data["rideID"] as! String
+                        
                         /* search local Ridelist for rideID */
                         let index: Int = self.searchForRideID(rideID: rideID)
                         if index >= 0 {
@@ -886,7 +893,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
      */
     
     /* maybe add a completion statement that moves to next vc so that everything is done before the driver is given the next view*/
-    func deleteDocFromRideList(row: Int) {
+    func moveToClaimed(row: Int, completion: @escaping (Bool, Ride, HomePageVC) -> Void) {
         let ride = rideList[row]
         let rideID = ride.rideID
         
@@ -897,9 +904,11 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             } else {
                 print("DELETEDOCFROMRIDELIST: Document successfully removed!")
                 print("DOC ID: ", rideID)
+                completion(true, ride, self)
             }
         }
     }
+    
     
     
     func getTime() -> NSDate {

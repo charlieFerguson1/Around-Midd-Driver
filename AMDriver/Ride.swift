@@ -25,6 +25,7 @@ class Ride: CustomStringConvertible {
     var latitude: String?
     var timeTillPickup: String = "Calculating"
     
+    var canceledOn: Bool = false
     var claimed: Bool
     
     init(pickUpLoc: String, dropOffLoc: String, UId: String, riders: String, rideID: String, name: String, stp_id: String) {

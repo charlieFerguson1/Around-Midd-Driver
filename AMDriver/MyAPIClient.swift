@@ -59,6 +59,14 @@ class MyAPIClient: NSObject, STPCustomerEphemeralKeyProvider{
         }
     }
     
+    func captureFunds(paymentIntent: String, captureAmount: Int) {
+        let url = self.baseURL.appendingPathComponent("captureFunds")
+        AF.request(url, method: .post, parameters: [
+            "paymentIntent": paymentIntent,
+            "captureAmount": captureAmount
+        ])
+    }
+    
     func calculateArrivalTime(ride: Ride, driverLong: String, driverLat: String, firestore: Firestore) -> String {
         let arivalTime = "15"
         
