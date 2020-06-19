@@ -24,7 +24,7 @@ class Ride: CustomStringConvertible {
     var longitude: String?
     var latitude: String?
     var timeTillPickup: String = "Calculating"
-    
+    var paymentIntent: String?
     var canceledOn: Bool = false
     var claimed: Bool
     

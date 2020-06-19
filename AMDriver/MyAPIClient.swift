@@ -37,7 +37,7 @@ class MyAPIClient: NSObject, STPCustomerEphemeralKeyProvider{
         //create payment intent
         AF.request(url, method: .post, parameters: [
             "customer_id" : stp_id,
-            "amount" : 5000
+            "amount" : 4000
         ])
             .validate(statusCode: 200..<300)
             .responseJSON { response in
@@ -48,7 +48,7 @@ class MyAPIClient: NSObject, STPCustomerEphemeralKeyProvider{
                         print(" Clinet secret (MYAPI):\n     ", clientSecret)
                         print(" Ride tag (MYAPI):\n     ", rideTag)
                         firestoreQueries().addClientSecret(rideTag: rideTag, fstore: self.fStoreClient, secret: clientSecret)
-                        vc.paymentIntentClientSecret = clientSecret
+                        vc.paymentIntent = clientSecret
                     }
                 case .failure(let error):
                     print(error)
@@ -65,6 +65,21 @@ class MyAPIClient: NSObject, STPCustomerEphemeralKeyProvider{
             "paymentIntent": paymentIntent,
             "captureAmount": captureAmount
         ])
+        .validate(statusCode: 200..<300)
+            .responseJSON { response in
+                switch response.result {
+                case .success(let value):
+                    if let JSON = value as? [String: Any] {
+                        let captured = JSON["captured"] as! String
+                        print(captured)
+                    }
+                case .failure(let error):
+                    print(error)
+                    break
+                    // error handling
+                    
+                }
+        }
     }
     
     func calculateArrivalTime(ride: Ride, driverLong: String, driverLat: String, firestore: Firestore) -> String {

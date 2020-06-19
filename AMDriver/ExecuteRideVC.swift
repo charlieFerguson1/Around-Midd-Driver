@@ -23,7 +23,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     var rideID: String?
     var name: String = "N/A"
     var fireStore: Firestore!
-    var paymentIntentClientSecret: String!
+    var paymentIntent: String!
     var rideCode: String = ""
     var timeTillPickup: String = ""
     
@@ -189,7 +189,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             if(self.statusPhase == 1){
                 //create paymentIntent
                 if rideID != nil {
-                    MyAPIClient.sharedClient.createPaymentIntent(CUid: CUid, stp_id: stp_id, rideTag: rideID!, vc: self, fStoreClient: fireStore )
+                    //MyAPIClient.sharedClient.createPaymentIntent(CUid: CUid, stp_id: stp_id, rideTag: rideID!, vc: self, fStoreClient: fireStore )
                 }
                 else {
                     print("Class: ExecuteRideVC;  func: UpdateStatus\n    error: no ride id")
@@ -199,6 +199,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         else if(self.statusPhase == 2){
             //should segue to a new page that lists their money earned and what not - offers them to go back to HPVC
             print("Ride Completed from reaching phase 2")
+            MyAPIClient.sharedClient.captureFunds(paymentIntent: self.paymentIntent, captureAmount: 4000)
             let ride = Ride(pickUpLoc: pickupLoc, dropOffLoc: dropoffLoc, UId: CUid, riders: numRiders ?? "1", rideID: rideID ?? "NO RIDE", name: name, stp_id: stp_id )
             firestoreQueries().removeRideFromClaimed(rideTag: rideID!, fstore: fireStore)
             let time = getTime()
@@ -489,8 +490,8 @@ extension ExecuteRideVC: STPPaymentContextDelegate {
     func paymentContext(_ paymentContext: STPPaymentContext, didCreatePaymentResult paymentResult: STPPaymentResult, completion: @escaping STPPaymentStatusBlock) {
         print("___IN DELEGATE___")
         //requesting payment intent from backend
-        print("*delegate method* - client secret: ", self.paymentIntentClientSecret!)
-        let paymentIntentParams = STPPaymentIntentParams(clientSecret: self.paymentIntentClientSecret ?? "NILL")
+        print("*delegate method* - client secret: ", self.paymentIntent!)
+        let paymentIntentParams = STPPaymentIntentParams(clientSecret: self.paymentIntent ?? "NILL")
         paymentIntentParams.paymentMethodId = paymentResult.paymentMethod?.stripeId
         
         // Confirm the PaymentIntent

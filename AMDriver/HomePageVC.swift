@@ -70,6 +70,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     var passStp_id = ""
     var rideCode = ""
     var timeTillPickup: String = ""
+    var paymentIntent: String?
 
     
     var numRiders = "1"
@@ -530,6 +531,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
                 rideFstId = rideList[indexPath.row].UId
                 timeTillPickup = rideList[indexPath.row].timeTillPickup
                 
+                
                 performSegue(withIdentifier: "PickedUp", sender: self)
                 /* update DB to refelct the fact that the ride has been picked up and has a TTPU
                  - maybe this should be just a passed value that is then sent to the DB n the next VC*/
@@ -719,6 +721,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             "carModel" : UD.string(forKey: "car_model") ?? "not specified",
             "color" : UD.string(forKey: "car_color") ?? "not specified",
             "carSeats" : String(UD.string(forKey: "car_seats") ?? "N/A"),
+            "paymentIntent" : ride.paymentIntent!,
             
             "code" : rideCode,
             "timeTillPickup": ride.timeTillPickup,
@@ -838,8 +841,10 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         let rideID = data["rideID"] as! String
         let name = data["Name"] as! String
         let stp_id = data["stp_id"] ?? "this is an old ride"
+        let paymentIntent = data["pi_id"]  ?? "no payment intent"
         
         let ride = Ride(pickUpLoc: pickup, dropOffLoc: drop, UId: id, riders: riders, rideID: rideID, name: name, stp_id: stp_id as! String)
+        ride.paymentIntent = paymentIntent as? String
         self.rideList.append(ride)
         let rideCount = self.rideList.count
         if rideCount <= 4 {
@@ -899,6 +904,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     func moveToClaimed(row: Int, completion: @escaping (Bool, Ride, HomePageVC) -> Void) {
         let ride = rideList[row]
         let rideID = ride.rideID
+        self.paymentIntent = ride.paymentIntent
         
         print("RIDE DOC ID - DELETEDOCFROMRIDELIST:", rideID)
         fstore.collection("Ride List").document(rideID).delete() { err in
@@ -948,6 +954,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             vc.fireStore = fstore
             vc.rideCode = self.rideCode
             vc.timeTillPickup = self.timeTillPickup
+            vc.paymentIntent = self.paymentIntent
         }
     }
 }
