@@ -83,7 +83,13 @@ class firestoreQueries {
             "stp_id": ride.stp_id,
             "completed": ride.completed ?? false,
             "canceledOn": ride.canceledOn 
-        ])
+        ]){ err in
+            if let err = err {
+                print("Error updating document *addClientSecret*: \(err.localizedDescription)")
+            } else {
+                print("added ride to \(collection)")
+            }
+        }
     }
     
     /// Retrieves the locations and their cordinates from the DB. Sets the user default

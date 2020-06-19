@@ -548,6 +548,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
      - moves doc to driverEnRoute
      */
     func didPickupRide(row: Int) {
+        print("didPickupRide")
         moveToClaimed(row: row, completion: self.moveToClaimedHandler)
         setInDrive(inDrive: true)
     }
@@ -713,10 +714,12 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
             "Name": ride.name,
             "stp_id": ride.stp_id,
             "driverName": UD.string(forKey: "name") ?? "Name not set" , //TODO: take care of case where the Driver name is not set
+            
             "carMake" : UD.string(forKey: "car_maker") ?? "not specified",
             "carModel" : UD.string(forKey: "car_model") ?? "not specified",
             "color" : UD.string(forKey: "car_color") ?? "not specified",
             "carSeats" : String(UD.string(forKey: "car_seats") ?? "N/A"),
+            
             "code" : rideCode,
             "timeTillPickup": ride.timeTillPickup,
             "completed": false,
@@ -930,6 +933,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        print("prepare for segue - HPVC")
         if let vc = segue.destination as? ExecuteRideVC {
             vc.pickupLoc = passPickup
             vc.dropoffLoc = passDropoff

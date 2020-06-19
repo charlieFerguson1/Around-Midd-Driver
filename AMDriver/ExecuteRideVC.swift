@@ -68,6 +68,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     
     let canceledRideHandler: (Bool, Ride, ExecuteRideVC) -> Void = {
         if $0 {
+            print("Adding to ride list in canceled Ride Handler")
             firestoreQueries().addToCollection(ride: $1, collection: "Ride List", time: $2.getTime() , fireStore: $2.fireStore)
         }
     }
@@ -197,7 +198,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
         }
         else if(self.statusPhase == 2){
             //should segue to a new page that lists their money earned and what not - offers them to go back to HPVC
-            
+            print("Ride Completed from reaching phase 2")
             let ride = Ride(pickUpLoc: pickupLoc, dropOffLoc: dropoffLoc, UId: CUid, riders: numRiders ?? "1", rideID: rideID ?? "NO RIDE", name: name, stp_id: stp_id )
             firestoreQueries().removeRideFromClaimed(rideTag: rideID!, fstore: fireStore)
             let time = getTime()
@@ -284,15 +285,14 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     
     // TODO: Move to firestorequerries?
     func deleteDocFromWaitingList(ride: Ride, collection: String, completion: @escaping (Bool, Ride, ExecuteRideVC) -> Void) {
-        let riderideID = ride.rideID
+        let rideID = ride.rideID
         
-        print("RIDE DOC ID - delete from collection :", riderideID)
-        fireStore.collection(collection).document(riderideID).delete() { err in
+        print("RIDE DOC ID - delete from collection :", rideID)
+        fireStore.collection(collection).document(rideID).delete() { err in
             if let err = err {
-                print("Error removing document: \(err)")
+                print("Error removing document: \(err.localizedDescription)")
             } else {
-                print("DELETEDOCFROMRIDELIST: Document successfully removed!")
-                print("DOC ID: ", riderideID)
+                print("delteDocFromWaitingList: Document \(rideID) successfully removed!")
                 completion(true, ride, self)
             }
         }
@@ -318,7 +318,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let vc = segue.destination as? HomePageVC {
-            print("Hello")
+            print("Prepare for segue from execute to HPVC")
         }
     }
     
