@@ -189,7 +189,7 @@ class ExecuteRideVC: UIViewController, UITableViewDelegate, UITableViewDataSourc
             if(self.statusPhase == 1){
                 //create paymentIntent
                 if rideID != nil {
-                    //MyAPIClient.sharedClient.createPaymentIntent(CUid: CUid, stp_id: stp_id, rideTag: rideID!, vc: self, fStoreClient: fireStore )
+                    MyAPIClient.sharedClient.createPaymentIntent(CUid: CUid, stp_id: stp_id, rideTag: rideID!, vc: self, fStoreClient: fireStore )
                 }
                 else {
                     print("Class: ExecuteRideVC;  func: UpdateStatus\n    error: no ride id")
