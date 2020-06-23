@@ -71,6 +71,10 @@ class firestoreQueries {
         }
     }
     
+    func getDriverDetails(driverId: String) {
+        
+    }
+    
     func addToCollection(ride: Ride, collection: String, time: NSDate, fireStore: Firestore) {
         fireStore.collection(collection).document(ride.rideID).setData([
             "PickupLoc": ride.pickUpLoc,
@@ -82,7 +86,8 @@ class firestoreQueries {
             "Name": ride.name,
             "stp_id": ride.stp_id,
             "completed": ride.completed ?? false,
-            "canceledOn": ride.canceledOn 
+            "canceledOn": ride.canceledOn,
+            "pi_id": ride.paymentIntent ?? "no intent ID"
         ]){ err in
             if let err = err {
                 print("Error updating document *addClientSecret*: \(err.localizedDescription)")

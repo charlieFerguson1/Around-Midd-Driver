@@ -134,14 +134,13 @@
 			isa = PBXGroup;
 			children = (
 				A93D428E2315AD650073D557 /* AppDelegate.swift */,
+				A93D42902315AD650073D557 /* ViewController.swift */,
+				A91B3B54231F6C5B002ABC2A /* AccountSetUpVC.swift */,
 				A93D42B323160F0D0073D557 /* HomePageVC.swift */,
+				A9176EB92322F21A00B3AB11 /* ExecuteRideVC.swift */,
 				A9630D3524838B090031BD9C /* locationUDExtension.swift */,
 				A9609FA3248586F60009CAE1 /* AnimationsUIViewExtension.swift */,
-				A93D42902315AD650073D557 /* ViewController.swift */,
 				A93FF2C123BD56CF000D5EEA /* StyleClasses.swift */,
-				A91B3B54231F6C5B002ABC2A /* AccountSetUpVC.swift */,
-				A9B63849244FB780006DD7DB /* MyAPIClient.swift */,
-				A9B6384B24510F45006DD7DB /* fireStoreQueries.swift */,
 				A9609F9F24856ED50009CAE1 /* UIElementStyles.swift */,
 				A93D42922315AD650073D557 /* Main.storyboard */,
 				A93D42982315AD680073D557 /* Assets.xcassets */,
@@ -150,7 +149,8 @@
 				A9868205231738C700FCD534 /* Ride.swift */,
 				A93D42BD2316160E0073D557 /* GoogleService-Info.plist */,
 				A93D42952315AD650073D557 /* AMDriver.xcdatamodeld */,
-				A9176EB92322F21A00B3AB11 /* ExecuteRideVC.swift */,
+				A9B6384B24510F45006DD7DB /* fireStoreQueries.swift */,
+				A9B63849244FB780006DD7DB /* MyAPIClient.swift */,
 			);
 			path = AMDriver;
 			sourceTree = "<group>";
