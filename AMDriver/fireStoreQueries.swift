@@ -71,8 +71,22 @@ class firestoreQueries {
         }
     }
     
-    func getDriverDetails(driverId: String) {
-        
+    
+    
+    func getPI_ID(rideID: String, fstore: Firestore, vc: ExecuteRideVC) {
+        let ref = fstore.collection("ClaimedRides").document(rideID)
+        ref.getDocument() { (document, error) in
+            if let document = document, document.exists {
+                if let pi_id = document.get("paymentIntent") {
+                    self.UD.set(pi_id, forKey: "pi_id")
+                    vc.paymentIntent = pi_id as? String
+                } else {
+                    print("there is no pi_id")
+                }
+            } else {
+                print("Document does not exist - getPI_ID")
+            }
+        }
     }
     
     func addToCollection(ride: Ride, collection: String, time: NSDate, fireStore: Firestore) {

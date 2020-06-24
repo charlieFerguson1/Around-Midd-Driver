@@ -552,7 +552,6 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
     func didPickupRide(row: Int) {
         print("didPickupRide")
         moveToClaimed(row: row, completion: self.moveToClaimedHandler)
-        setInDrive(inDrive: true)
     }
     
     func setUpDetailView(ride: Ride) {
@@ -855,22 +854,7 @@ class HomePageVC: ViewController, UITableViewDelegate, UITableViewDataSource, UI
         }
     }
     
-    /*
-     can probably move this to an external class
-     */
-    func setInDrive(inDrive: Bool) {
-        var ref: DocumentReference? = nil
-        ref = fstore.collection("DriverAccounts").document(CUid)
-        ref?.updateData([
-            "InRide" : inDrive
-        ]){ err in
-            if let err = err {
-                print("Error updating document: \(err)")
-            } else {
-                print("Document successfully updated -- set in drive")
-            }
-        }
-    }
+    
     
     /*
      this may not have any callers... should go if so
